@@ -60,7 +60,8 @@ void GameInterface::GetInput(ControlInfo* const hidInput, double const scaleAdju
 		if (pPlayer->actor->xspr.health != 0)
 		{
 			pPlayer->Angles.RenderAngles.Yaw += DAngle::fromDeg(input.avel);
-			pPlayer->Angles.RenderAngles.Pitch += DAngle::fromDeg(input.horz);
+			//Set the pitch directly
+			pPlayer->Angles.RenderAngles.Pitch = DAngle::fromDeg(input.horz);
 		}
 	}
 

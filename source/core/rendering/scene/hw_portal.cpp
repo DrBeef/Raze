@@ -91,7 +91,7 @@ void FPortalSceneState::EndFrame(HWDrawInfo *di, FRenderState &state)
 		{
 			Printf("%sProcessing %s, depth = %d\n", indent.GetChars(), p->GetName(), renderdepth);
 		}
-		if (p->lines.Size() > 0)
+		if (p->lines.Size() > 0 && !p->IsSky())
 		{
 			RenderPortal(p, state, true, di);
 		}

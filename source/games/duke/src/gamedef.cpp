@@ -50,6 +50,8 @@ Modifications for JonoF's port by Jonathon Fowler (jf@jonof.id.au)
 
 extern TArray<TPointer<MapRecord>> mapList;
 
+extern int playerHeight;
+
 BEGIN_DUKE_NS
 
 enum { VERSIONCHECK = 41 };
@@ -3188,7 +3190,7 @@ void loadcons()
 	gs.gravity = 0.6875;
 	gs.tripbombblastradius = 3880;
 	gs.gutsscale = 0.5;
-	gs.playerheight = 40;
+	playerHeight = gs.playerheight = 40;
 	gs.displayflags = DUKE3D_NO_WIDESCREEN_PINNING;
 
 

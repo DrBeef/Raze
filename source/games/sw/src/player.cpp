@@ -2160,7 +2160,8 @@ void DoPlayerMove(PLAYER* pp)
     }
     else
     {
-        pp->actor->spr.Angles.Pitch += DAngle::fromDeg(pp->input.horz);
+        //Set pitch directly
+        pp->actor->spr.Angles.Pitch = DAngle::fromDeg(pp->input.horz);
     }
 
     pp->Angles.doPitchKeys(&pp->input.actions, pp->input.horz);
@@ -2747,7 +2748,8 @@ void DoPlayerMoveVehicle(PLAYER* pp)
     }
     else
     {
-        pp->actor->spr.Angles.Pitch += DAngle::fromDeg(pp->input.horz);
+        //Set pitch directly
+        pp->actor->spr.Angles.Pitch = DAngle::fromDeg(pp->input.horz);
     }
 
     pp->Angles.doPitchKeys(&pp->input.actions, pp->input.horz);
@@ -2793,7 +2795,8 @@ void DoPlayerMoveTurret(PLAYER* pp)
     }
     else
     {
-        pp->actor->spr.Angles.Pitch += DAngle::fromDeg(pp->input.horz);
+        //Set pitch directly
+        pp->actor->spr.Angles.Pitch = DAngle::fromDeg(pp->input.horz);
     }
 
     pp->Angles.doPitchKeys(&pp->input.actions, pp->input.horz);
@@ -3395,7 +3398,8 @@ void DoPlayerClimb(PLAYER* pp)
     }
     else
     {
-        pp->actor->spr.Angles.Pitch += DAngle::fromDeg(pp->input.horz);
+        //Set pitch directly
+        pp->actor->spr.Angles.Pitch = DAngle::fromDeg(pp->input.horz);
     }
 
     pp->Angles.doPitchKeys(&pp->input.actions, pp->input.horz);

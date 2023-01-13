@@ -47,9 +47,9 @@
 #include "gamestruct.h"
 #include "statusbar.h"
 
-CVARD(Bool, cl_crosshair, true, CVAR_ARCHIVE, "enable/disable crosshair");
+CVARD(Bool, cl_crosshair, false, CVAR_ARCHIVE, "enable/disable crosshair");
 CVARD(Bool, cl_automsg, false, CVAR_ARCHIVE, "enable/disable automatically sending messages to all players") // Not implemented for Blood
-CVARD(Bool, cl_autorun, true, CVAR_ARCHIVE, "enable/disable autorun")
+CVARD(Bool, cl_autorun, false, CVAR_ARCHIVE, "enable/disable autorun")
 
 CVARD(Bool, cl_runmode, false, CVAR_ARCHIVE, "enable/disable modernized run key operation")
 
@@ -68,9 +68,9 @@ CVARD(Bool, cl_idplayers, true, CVAR_ARCHIVE, "enable/disable name display when 
 CVARD(Bool, cl_weaponsway, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG, "enable/disable player weapon swaying")
 
 // Todo: Consolidate these to be consistent across games?
-CVARD(Bool, cl_viewbob, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG, "enable/disable player head bobbing")
-CVARD(Bool, cl_viewhbob, true, CVAR_ARCHIVE, "enable/disable view horizontal bobbing") // Only implemented in Blood
-CVARD(Bool, cl_viewvbob, true, CVAR_ARCHIVE, "enable/disable view vertical bobbing") // Only implemented in Blood
+CVARD(Bool, cl_viewbob, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG, "enable/disable player head bobbing")
+CVARD(Bool, cl_viewhbob, false, CVAR_ARCHIVE, "enable/disable view horizontal bobbing") // Only implemented in Blood
+CVARD(Bool, cl_viewvbob, false, CVAR_ARCHIVE, "enable/disable view vertical bobbing") // Only implemented in Blood
 
 CVARD(Bool, cl_interpolate, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG, "enable/disable view interpolation")
 CVARD(Bool, cl_slopetilting, false, CVAR_ARCHIVE|CVAR_GLOBALCONFIG, "enable/disable slope tilting")
@@ -125,7 +125,7 @@ CUSTOM_CVARD(Int, snd_speech, 1, CVAR_ARCHIVE, "enables/disables player speech")
 
 // HUD
 
-CUSTOM_CVARD(Int, hud_size, Hud_Stbar, CVAR_ARCHIVE, "Defines the HUD size and style")
+CUSTOM_CVARD(Int, hud_size, Hud_Full, CVAR_ARCHIVE, "Defines the HUD size and style")
 {
 	if (self < 0) self = 0;
 	else if (self > Hud_Nothing) self = Hud_Nothing;

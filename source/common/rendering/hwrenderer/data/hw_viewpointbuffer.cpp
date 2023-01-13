@@ -30,6 +30,9 @@
 #include "hw_renderstate.h"
 #include "hw_viewpointbuffer.h"
 #include "hw_cvars.h"
+#include "menustate.h" // Hack?!
+#include "gamestate.h" // Hack?!
+#include "hw_vrmodes.h"
 
 static const int INITIAL_BUFFER_SIZE = 100;	// 100 viewpoints per frame should nearly always be enough
 
@@ -80,9 +83,12 @@ int HWViewpointBuffer::Bind(FRenderState &di, unsigned int index)
 	return index;
 }
 
-void HWViewpointBuffer::Set2D(FRenderState &di, int width, int height, int pll)
+void HWViewpointBuffer::Set2D(F2DDrawer *drawer, FRenderState &di, int width, int height, int pll)
 {
-	HWViewpointUniforms matrices;
+	const bool isIn2D = drawer == nullptr || drawer->isIn2D;
+	const bool isDrawingFullscreen = (gamestate != GS_LEVEL) || menuactive != MENU_Off;
+	{
+		HWViewpointUniforms matrices;
 
 	matrices.mViewMatrix.loadIdentity();
 	matrices.mNormalViewMatrix.loadIdentity();
@@ -92,16 +98,34 @@ void HWViewpointBuffer::Set2D(FRenderState &di, int width, int height, int pll)
 	matrices.mClipLine.X = -10000000.0f;
 	matrices.mShadowmapFilter = gl_shadowmap_filter;
 
-	matrices.mProjectionMatrix.ortho(0, (float)width, (float)height, 0, -1.0f, 1.0f);
-	matrices.CalcDependencies();
+		if (isDrawingFullscreen && isIn2D) //fullscreen 2D
+		{
+			matrices.mProjectionMatrix.ortho(0, (float) width, (float) height, 0, -1.0f, 1.0f);
+		}
+		else if (isIn2D) // HUD
+		{
+			auto vrmode = VRMode::GetVRMode(true);
+			matrices.mProjectionMatrix = vrmode->mEyes[di.GetEye()].GetHUDProjection(width, height);
+		}
+		else //Player Sprite
+		{
+			auto vrmode = VRMode::GetVRMode(true);
+			matrices.mProjectionMatrix = vrmode->mEyes[di.GetEye()].GetPlayerSpriteProjection(width, height);
+		}
+		matrices.CalcDependencies();
+		SetViewpoint(di, &matrices);
+		return;
 
-	mBuffer->Map();
-	memcpy(((char*)mBuffer->Memory()) + mUploadIndex * mBlockAlign, &matrices, sizeof(matrices));
-	mBuffer->Unmap();
+		for (int n = 0; n < mPipelineNbr; n++)
+		{
+			mBufferPipeline[n]->Map();
+			memcpy(mBufferPipeline[n]->Memory(), &matrices, sizeof(matrices));
+			mBufferPipeline[n]->Unmap();
+		}
 
-	mClipPlaneInfo.Push(0);
-
-	Bind(di, mUploadIndex++);
+		mLastMappedIndex = -1;
+	}
+	Bind(di, 0);
 }
 
 int HWViewpointBuffer::SetViewpoint(FRenderState &di, HWViewpointUniforms *vp)

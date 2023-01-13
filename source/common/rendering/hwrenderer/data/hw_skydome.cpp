@@ -66,12 +66,13 @@
 
 //-----------------------------------------------------------------------------
 //
-// Shamelessly lifted from Doomsday (written by Jaakko Keränen)
+// Shamelessly lifted from Doomsday (written by Jaakko Kerï¿½nen)
 // also shamelessly lifted from ZDoomGL! ;)
 //
 //-----------------------------------------------------------------------------
 CVAR(Float, skyoffset, 0.f, 0)	// for testing
-
+CVAR(Bool, draw_sky, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Int, skydome_columns, 8, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 struct SkyColor
 {
@@ -303,7 +304,7 @@ void FSkyVertexBuffer::CreateDome()
 	mVertices[10].Set(-1.0f, 0.0f, -1.0f);
 	mVertices[11].Set(0.0f, 0.0f, 1.0f);
 
-	mColumns = 128;
+	mColumns = skydome_columns;
 	mRows = 4;
 	CreateSkyHemisphereDoom(SKYHEMI_UPPER);
 	CreateSkyHemisphereDoom(SKYHEMI_LOWER);
@@ -458,6 +459,11 @@ void FSkyVertexBuffer::RenderRow(FRenderState& state, EDrawType prim, int row, T
 
 void FSkyVertexBuffer::DoRenderDome(FRenderState& state, FGameTexture* tex, int mode, bool which, PalEntry color)
 {
+	if (!draw_sky)
+	{
+		return;
+	}
+
 	auto& primStart = which ? mPrimStartBuild : mPrimStartDoom;
 	if (tex && tex->isValid())
 	{

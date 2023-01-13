@@ -30,6 +30,8 @@ Prepared for public release, 03/21/2003 - Charlie Wiederhold, 3D Realms
 #include "global.h"
 #include "names_r.h"
 
+extern int playerHeight;
+
 BEGIN_DUKE_NS
 
 void initactorflags_r()

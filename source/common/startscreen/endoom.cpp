@@ -170,7 +170,7 @@ int RunEndoom()
 	auto endoom = new FEndoomScreen(endoom_lump);
 	endoom->Render(true);
 
-	while(true)
+/*	while(true)
 	{
 		I_GetEvent();
 		endoom->Update();
@@ -188,7 +188,7 @@ int RunEndoom()
 				return 0;
 			}
 		}
-	}
+	}*/
 	return 0;
 }
 

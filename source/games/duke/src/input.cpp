@@ -110,9 +110,18 @@ void hud_input(int plnum)
 
 	if (!PlayerInputBits(plnum, SB_INTERFACE_BITS))
 		p->interface_toggle_flag = 0;
+#ifndef __MOBILE__
 	else if (p->interface_toggle_flag == 0)
 	{
-		p->interface_toggle_flag = 1;
+#else
+		//Without the following, it seems weapon swtich doesn't work in RazeXR?!
+	else
+	{
+		if (p->interface_toggle_flag == 0)
+		{
+			p->interface_toggle_flag = 1;
+		}
+#endif
 
 		// Don't go on if paused or dead.
 		if (paused) return;
@@ -835,7 +844,8 @@ void GameInterface::GetInput(ControlInfo* const hidInput, double const scaleAdju
 		{
 			// Do these in the same order as the old code.
 			p->Angles.RenderAngles.Yaw += p->adjustavel(input.avel);
-			p->Angles.RenderAngles.Pitch += DAngle::fromDeg(input.horz);
+			//Set pitch directly
+			p->Angles.RenderAngles.Pitch = DAngle::fromDeg(input.horz);
 		}
 	}
 

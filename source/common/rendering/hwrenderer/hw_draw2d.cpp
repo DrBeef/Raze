@@ -62,7 +62,7 @@ void Draw2D(F2DDrawer* drawer, FRenderState& state, int x, int y, int width, int
 	twoD.Clock();
 
 	state.SetViewport(x, y, width, height);
-	screen->mViewpoints->Set2D(state, drawer->GetWidth(), drawer->GetHeight());
+	screen->mViewpoints->Set2D(drawer, state, drawer->GetWidth(), drawer->GetHeight());
 
 	state.EnableStencil(false);
 	state.SetStencil(0, SOP_Keep, SF_AllOn);

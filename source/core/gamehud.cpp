@@ -46,10 +46,11 @@
 #include "v_font.h"
 #include "gamestruct.h"
 #include "gamefuncs.h"
+#include "gamestate.h"
+#include "version.h"
 #include "texinfo.h"
 
 #include "buildtiles.h"
-
 
 F2DDrawer twodpsp;
 
@@ -131,9 +132,9 @@ void DrawRateStuff()
 		FString fpsbuff = statFPS();
 
 		int textScale = active_con_scale(twod);
-		int rate_x = screen->GetWidth() / textScale - NewConsoleFont->StringWidth(&fpsbuff[0]);
+		int rate_x = (screen->GetWidth() / 2) / textScale - (NewConsoleFont->StringWidth(&fpsbuff[0]) / 2);
 		twod->AddColorOnlyQuad(rate_x * textScale, 0, screen->GetWidth(), NewConsoleFont->GetHeight() * textScale, MAKEARGB(255, 0, 0, 0));
-		DrawText(twod, NewConsoleFont, CR_WHITE, rate_x, 0, (char*)&fpsbuff[0],
+		DrawText(twod, NewConsoleFont, CR_WHITE, rate_x, screen->GetHeight() / 2, (char*)&fpsbuff[0],
 			DTA_VirtualWidth, screen->GetWidth() / textScale,
 			DTA_VirtualHeight, screen->GetHeight() / textScale,
 			DTA_KeepRatio, true, TAG_DONE);
@@ -141,3 +142,26 @@ void DrawRateStuff()
 	}
 }
 
+void DrawVersionString ()
+{
+	static uint64_t first = screen->FrameTime;
+
+	//Only show version string for 5 seconds
+	if ((screen->FrameTime - first) > 15000)
+	{
+		return;
+	}
+
+	if (gamestate == GS_STARTUP ||
+		gamestate == GS_DEMOSCREEN) {
+		char buff[60];
+
+		int textScale = active_con_scale(twod) * 3;
+
+		mysnprintf(buff, countof(buff), "Team Beef Presents - %s", RAZEXR_VERSIONSTR);
+		DrawText(twod, ConFont, CR_WHITE, 0, 0, (char *) &buff[0],
+				 DTA_VirtualWidth, screen->GetWidth() / textScale,
+				 DTA_VirtualHeight, screen->GetHeight() / textScale,
+				 DTA_KeepRatio, true, TAG_DONE);
+	}
+}

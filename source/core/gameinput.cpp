@@ -104,6 +104,9 @@ void resetTurnHeldAmt()
 	turnheldtime = 0;
 }
 
+void VR_GetMove(float *joy_forward, float *joy_side, float *hmd_forward, float *hmd_side, float *up,
+				float *yaw, float *pitch, float *roll);
+extern int resetGameYaw;
 
 //---------------------------------------------------------------------------
 //
@@ -149,6 +152,20 @@ void processMovement(InputPacket* const currInput, InputPacket* const inputBuffe
 	// process RR's drunk state.
 	if (isRR() && drink_amt >= 66 && drink_amt <= 87)
 		currInput->svel += drink_amt & 1 ? -currInput->fvel : currInput->fvel;
+
+	float joyforward=0;
+	float joyside=0;
+	float yaw=0;
+	float pitch=0;
+	float dummy=0;
+	static float last_yaw = 0;
+	VR_GetMove(&joyforward, &joyside, &dummy, &dummy, &dummy, &yaw, &pitch, &dummy);
+	currInput->fvel += joyforward * keymove;
+	currInput->svel += joyside * keymove;
+	currInput->avel += last_yaw;
+	currInput->avel -= yaw;
+	last_yaw = yaw;
+	currInput->horz = pitch;
 
 	// add collected input to game's local input accumulation packet.
 	inputBuffer->fvel = clamp(inputBuffer->fvel + currInput->fvel, -(float)keymove, (float)keymove);
@@ -290,6 +307,12 @@ void PlayerAngles::doViewPitch(const DVector2& pos, DAngle const ang, bool const
 
 void PlayerAngles::doViewYaw(const ESyncBits actions)
 {
+	if (ViewAngles.Yaw.Degrees() != 0.0f ||
+			ViewAngles.Roll.Degrees() != 0.0f)
+	{
+		resetGameYaw = 1;
+	}
+
 	// Process angle return to zeros.
 	scaletozero(ViewAngles.Yaw, YAW_LOOKRETURN);
 	scaletozero(ViewAngles.Roll, YAW_LOOKRETURN);

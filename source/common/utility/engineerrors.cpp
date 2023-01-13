@@ -65,8 +65,18 @@ void I_DebugPrintf(const char *fmt,...)
 	}
 }
 #else
+
+#if defined(__ANDROID__)
+#include <android/log.h>
+
+#define ALOGE(...) __android_log_print( ANDROID_LOG_ERROR, "RazeXR", __VA_ARGS__ )
+#endif
+
 void I_DebugPrint(const char *cp)
 {
+#if defined(__ANDROID__)
+	ALOGE("%s", cp);
+#endif
 }
 
 void I_DebugPrintf(const char *fmt,...)

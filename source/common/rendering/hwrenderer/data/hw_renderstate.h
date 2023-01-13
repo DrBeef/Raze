@@ -216,6 +216,7 @@ protected:
 	uint8_t mSplitEnabled : 1;
 	uint8_t mBrightmapEnabled : 1;
 
+	int mEye;
 	int mLightIndex;
 	int mBoneIndexBase;
 	int mSpecialEffect;
@@ -256,6 +257,7 @@ public:
 
 	void Reset()
 	{
+		mEye = 0;
 		mTextureEnabled = true;
 		mBrightmapEnabled = mGradientEnabled = mFogEnabled = mGlowEnabled = false;
 		mFogColor = 0xffffffff;
@@ -310,6 +312,11 @@ public:
 		mModelMatrix.loadIdentity();
 		mTextureMatrix.loadIdentity();
 		ClearClipSplit();
+	}
+
+	void SetEye(int eye)
+	{
+		mEye = eye;
 	}
 
 	void SetNormal(FVector3 norm)
@@ -607,6 +614,11 @@ public:
 		mBias.mChanged |= mBias.mFactor != 0 || mBias.mUnits != 0;
 		mBias.mFactor = 0;
 		mBias.mUnits = 0;
+	}
+
+	int GetEye()
+	{
+		return mEye;
 	}
 
 private:

@@ -49,7 +49,7 @@ VkRenderState::VkRenderState(VulkanRenderDevice* fb) : fb(fb), mStreamBufferWrit
 
 void VkRenderState::ClearScreen()
 {
-	screen->mViewpoints->Set2D(*this, SCREENWIDTH, SCREENHEIGHT);
+	screen->mViewpoints->Set2D(nullptr, *this, SCREENWIDTH, SCREENHEIGHT);
 	SetColor(0, 0, 0);
 	Apply(DT_TriangleStrip);
 	mCommandBuffer->draw(4, 1, FFlatVertexBuffer::FULLSCREEN_INDEX, 0);

@@ -36,6 +36,8 @@
 
 #include "hw_vrmodes.h"
 #include "v_draw.h"
+#include "gamestate.h"
+#include "menustate.h"
 
 extern bool vid_hdr_active;
 
@@ -120,6 +122,7 @@ void FGLRenderer::Flush()
 		int eyeCount = vrmode->mEyeCount;
 		for (int eye_ix = 0; eye_ix < eyeCount; ++eye_ix)
 		{
+			screen->RenderState()->SetEye(eye_ix); // tell render state which eye's 2D we are drawing
 			screen->Draw2D();
 			if (eyeCount - eye_ix > 1)
 				mBuffers->NextEye(eyeCount);

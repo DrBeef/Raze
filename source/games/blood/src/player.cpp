@@ -1714,7 +1714,8 @@ void ProcessInput(PLAYER* pPlayer)
 
 	if (SyncInput())
 	{
-		pPlayer->actor->spr.Angles.Pitch += DAngle::fromDeg(pInput->horz);
+		//Set pitch directly
+		pPlayer->actor->spr.Angles.Pitch = DAngle::fromDeg(pInput->horz);
 	}
 
 	pPlayer->Angles.doPitchKeys(&pInput->actions, pInput->horz);

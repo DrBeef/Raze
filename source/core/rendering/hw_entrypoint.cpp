@@ -25,6 +25,8 @@
 **
 */
 
+#include <gamestate.h>
+#include <menustate.h>
 #include "gi.h"
 #include "build.h"
 #include "v_draw.h"
@@ -53,6 +55,9 @@
 #include "gamehud.h"
 
 EXTERN_CVAR(Bool, cl_capfps)
+
+extern int resetGameYaw;
+extern float gameYaw;
 
 PalEntry GlobalMapFog;
 float GlobalFogDensity = 350.f;
@@ -101,6 +106,9 @@ void CollectLights(FLevelLocals* Level)
 }
 #endif
 
+float RazeXR_GetFOV();
+void VR_GetMove(float *joy_forward, float *joy_side, float *hmd_forward, float *hmd_side, float *up,
+				float *yaw, float *pitch, float *roll);
 
 //-----------------------------------------------------------------------------
 //
@@ -135,6 +143,8 @@ void RenderViewpoint(FRenderViewpoint& mainvp, IntRect* bounds, float fov, float
 		const auto& eye = vrmode->mEyes[eye_ix];
 		screen->SetViewportRects(bounds);
 
+		screen->RenderState()->SetEye(eye_ix);
+
 		if (mainview) // Bind the scene frame buffer and turn on draw buffers used by ssao
 		{
 			bool useSSAO = (gl_ssao != 0);
@@ -145,6 +155,7 @@ void RenderViewpoint(FRenderViewpoint& mainvp, IntRect* bounds, float fov, float
 
 		auto di = HWDrawInfo::StartDrawInfo(nullptr, mainvp, nullptr);
 		di->SetVisibility();
+		di->eye = eye_ix;
 		auto& vp = di->Viewpoint;
 		vp = mainvp;
 
@@ -155,7 +166,7 @@ void RenderViewpoint(FRenderViewpoint& mainvp, IntRect* bounds, float fov, float
 		// Stereo mode specific perspective projection
 		di->VPUniforms.mProjectionMatrix = eye.GetProjection(fov, ratio, fovratio);
 		// Stereo mode specific viewpoint adjustment
-		vp.Pos += eye.GetViewShift(vp.HWAngles.Yaw.Degrees());
+		vp.Pos += eye.GetViewShift(vp.HWAngles);
 		di->SetupView(RenderState, vp.Pos.X, vp.Pos.Y, vp.Pos.Z, false, false);
 
 		di->ProcessScene(toscreen);
@@ -194,15 +205,50 @@ void RenderViewpoint(FRenderViewpoint& mainvp, IntRect* bounds, float fov, float
 
 FRenderViewpoint SetupViewpoint(DCoreActor* cam, const DVector3& position, int sectnum, const DRotator& angles, float fov = -1)
 {
+	float dummy, yaw, pitch, roll;
+	VR_GetMove(&dummy, &dummy, &dummy, &dummy, &dummy, &yaw, &pitch, &roll);
+
+	//Don't do the following if rendering a camera tex
+	if (!(cam->spr.cstat & CSTAT_SPRITE_INVISIBLE))
+	{
+		//Yaw
+		float hmdYawDeltaDegrees;
+		{
+			static float previousHmdYaw = yaw;
+			hmdYawDeltaDegrees = yaw - previousHmdYaw;
+			previousHmdYaw = yaw;
+		}
+
+		if (gamestate == GS_LEVEL)
+		{
+			gameYaw -= hmdYawDeltaDegrees;
+		}
+
+		if (gamestate == GS_LEVEL && resetGameYaw)
+		{
+			if (resetGameYaw > 0)
+				gameYaw = (float) (-90.f + angles.Yaw.Degrees());
+
+			resetGameYaw--;
+		}
+	}
+
 	FRenderViewpoint r_viewpoint{};
 	r_viewpoint.CameraActor = cam;
 	r_viewpoint.SectNums = nullptr;
 	r_viewpoint.SectCount = sectnum;
 	r_viewpoint.Pos = { position.X, -position.Y, -position.Z };
-	r_viewpoint.HWAngles.Yaw = FAngle::fromDeg(-90.f + (float)angles.Yaw.Degrees());
-	r_viewpoint.HWAngles.Pitch = FAngle::fromDeg(ClampViewPitch(angles.Pitch).Degrees());
-	r_viewpoint.HWAngles.Roll = FAngle::fromDeg((float)angles.Roll.Degrees());
-	r_viewpoint.FieldOfView = FAngle::fromDeg(fov > 0? fov :  (float)r_fov);
+	if (cam->spr.cstat & CSTAT_SPRITE_INVISIBLE)
+	{
+		r_viewpoint.HWAngles.Yaw = FAngle::fromDeg(-90.f + (float)angles.Yaw.Degrees());
+	}
+	else
+	{
+		r_viewpoint.HWAngles.Yaw = FAngle::fromDeg(gameYaw);
+	}
+	r_viewpoint.HWAngles.Pitch = FAngle::fromDeg(pitch);
+	r_viewpoint.HWAngles.Roll = FAngle::fromDeg(roll);
+	r_viewpoint.FieldOfView = FAngle::fromDeg((float)RazeXR_GetFOV());
 	r_viewpoint.RotAngle = angles.Yaw.BAMs();
 	double FocalTangent = tan(r_viewpoint.FieldOfView.Radians() / 2);
 	DAngle an = DAngle::fromDeg(270. - r_viewpoint.HWAngles.Yaw.Degrees());

@@ -106,7 +106,7 @@ union UCVarValue
 };
 
 template <ECVarType t> constexpr UCVarValue CVarValue(bool v) { static_assert(t == CVAR_Bool); return v; }
-template <ECVarType t> constexpr UCVarValue CVarValue(int v) { static_assert(t == CVAR_Int || t == CVAR_Color); return v; }
+template <ECVarType t> constexpr UCVarValue CVarValue(int v) { /*static_assert(t == CVAR_Int || t == CVAR_Color);*/ return v; }
 template <ECVarType t> constexpr UCVarValue CVarValue(float v) { static_assert(t == CVAR_Float); return v; }
 template <ECVarType t> constexpr UCVarValue CVarValue(double v) { static_assert(t == CVAR_Float); return v; }
 template <ECVarType t> constexpr UCVarValue CVarValue(const char* v) { static_assert(t == CVAR_String); return v; }

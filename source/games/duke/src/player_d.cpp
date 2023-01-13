@@ -39,6 +39,8 @@ source as it is released.
 #include "names_d.h"
 #include "dukeactor.h"
 
+void get_weapon_pos_and_angle(float &x, float &y, float &z, float &pitch, float &yaw);
+
 BEGIN_DUKE_NS 
 
 void fireweapon_ww(int snum);
@@ -1021,6 +1023,35 @@ static void shootshrinker(DDukeActor* actor, int p, const DVector3& pos, DAngle 
 //
 //
 //---------------------------------------------------------------------------
+
+void shoot_d(DDukeActor* actor, int atwith, PClass *cls);
+void shoot_d_override(DDukeActor* actor, int atwith, PClass *cls)
+{
+	int l, j;
+	int sx, sy, sz, sa, p, vel, zvel, x, dal;
+	player_struct backup;
+	if (actor->isPlayer())
+	{
+/*		p = actor->PlayerIndex();
+		{
+			float ax, y, z, pitch, yaw;
+			get_weapon_pos_and_angle(ax, y, z, pitch, yaw);
+			backup = ps[p];
+			ps[p].pos.X += (ax * 16.0f);
+			ps[p].pos.Y += (y * -16.0f);;
+			ps[p].pos.Z += (z * -256);
+			ps[p].angle.ang = degang(-yaw);
+			ps[p].horizon.horiz = pitchhoriz(-pitch);
+		}
+		*/
+	}
+	shoot_d(actor, atwith, cls);
+/*	if (actor->isPlayer())
+	{
+		ps[p] = backup;
+	}
+ */
+}
 
 void shoot_d(DDukeActor* actor, int atwith, PClass *cls)
 {

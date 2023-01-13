@@ -19,7 +19,8 @@ enum
 	VR_TOPBOTTOM = 11,
 	VR_ROWINTERLEAVED = 12,
 	VR_COLUMNINTERLEAVED = 13,
-	VR_CHECKERINTERLEAVED = 14
+	VR_CHECKERINTERLEAVED = 14,
+	VR_OPENXR = 15
 };
 
 struct VREyeInfo
@@ -28,10 +29,13 @@ struct VREyeInfo
 	float mScaleFactor;
 
 	VSMatrix GetProjection(float fov, float aspectRatio, float fovRatio) const;
-	DVector3 GetViewShift(float yaw) const;
+	DVector3 GetViewShift(FRotator angles) const;
+	VSMatrix GetHUDProjection(int width, int height) const;
+	VSMatrix GetPlayerSpriteProjection(int width, int height) const;
+
 private:
 	float getShift() const;
-
+	int getEye() const;
 };
 
 struct VRMode
@@ -44,5 +48,4 @@ struct VRMode
 
 	static const VRMode *GetVRMode(bool toscreen = true);
 	void AdjustViewport(DFrameBuffer *fb) const;
-	VSMatrix GetHUDSpriteProjection() const;
 };

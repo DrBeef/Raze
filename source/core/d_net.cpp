@@ -1043,7 +1043,8 @@ void NetUpdate (void)
 					svel += localcmds[modp].ucmd.svel;
 					fvel += localcmds[modp].ucmd.fvel;
 					avel += localcmds[modp].ucmd.avel;
-					horz += localcmds[modp].ucmd.horz;
+					//Take latest pitch
+					horz = localcmds[modp].ucmd.horz;
 				}
 
 				svel /= ticdup;

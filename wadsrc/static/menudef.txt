@@ -15,7 +15,7 @@ LISTMENU "MainMenu"
 	Size 320, 200
 	ifgame(Duke, Nam, WW2GI, Redneck, RedneckRides)
 	{
-		position 160, 55
+		position 160, 35
 		Linespacing 20
 		animatedtransition
 		DukeLogo
@@ -23,6 +23,7 @@ LISTMENU "MainMenu"
 		//DukeTextItem "$MNU_NEWGAME", "m", "MultiMenu" // In EDuke this replaces "New Game" when in networking mode. Kept here as a reminder.
 		DukeTextItem "$MNU_LOADGAME", "l", "LoadGameMenu"
 		DukeTextItem "$MNU_OPTIONS", "o", "OptionsMenu"
+		DukeTextItem "VR Options", "v", "VROptionsMenu"
 		DukeTextItem "$MNU_HELP", "h", "HelpMenu"
 		DukeTextItem "$MNU_CREDITS", "c", "CreditsMenu"
 		DukeTextItem "$MNU_QUITGAME", "q", "QuitMenu"
@@ -35,6 +36,7 @@ LISTMENU "MainMenu"
 		BloodTextItem "$MNU_NEWGAME", "n", "EpisodeMenu"
 		//BloodTextItem "$MNU_MULTIPLAYER", "m", "MultiMenu"
 		BloodTextItem "$MNU_OPTIONS", "o", "OptionsMenu"
+		BloodTextItem "VR Options", "v", "VROptionsMenu"
 		BloodTextItem "$MNU_LOADGAME", "l", "LoadGameMenu"
 		BloodTextItem "$MNU_HELP", "h", "HelpMenu"
 		BloodTextItem "$MNU_CREDITS", "c", "CreditsMenu"
@@ -52,6 +54,7 @@ LISTMENU "MainMenu"
 		SWTextItem "$MNU_LOADGAME", "l", "LoadGameMenu"
 		SWTextItem "$MNU_SAVEGAME", "s", "none"
 		SWTextItem "$MNU_OPTIONS", "o", "OptionsMenu"
+		SWTextItem "VR Options", "v", "VROptionsMenu"
 		ifnotgame (shareware)
 		{
 			SWTextItem "$MNU_CREDITS", "c", "CreditsMenu"
@@ -73,6 +76,7 @@ LISTMENU "MainMenu"
 		ExhumedTextItem "$MNU_LOADGAME", "l", "LoadGameMenu"
 		//ExhumedTextItem "$TXT_EX_MAP00", "m", "StartGameNoSkill", 1
 		ExhumedTextItem "$MNU_OPTIONS", "v", "OptionsMenu"
+		ExhumedTextItem "VR Options", "v", "VROptionsMenu"
 		ExhumedTextItem "$MNU_QUITGAME", "q", "QuitMenu"
 	}
 }
@@ -96,6 +100,7 @@ LISTMENU "IngameMenu"
 		DukeTextItem "$MNU_SAVEGAME", "s", "SaveGameMenu"
 		DukeTextItem "$MNU_LOADGAME", "l", "LoadGameMenu"
 		DukeTextItem "$MNU_OPTIONS", "o", "OptionsMenu"
+		DukeTextItem "VR Options", "o", "VROptionsMenu"
 		DukeTextItem "$MNU_HELP", "h", "HelpMenu"
 		DukeTextItem "$MNU_ENDGAME", "e", "EndgameMenu"
 		DukeTextItem "$MNU_QUITGAME", "q", "QuitMenu"
@@ -107,6 +112,7 @@ LISTMENU "IngameMenu"
 		Linespacing 17
 		BloodTextItem "$MNU_NEWGAME", "n", "EpisodeMenu"
 		BloodTextItem "$MNU_OPTIONS", "o", "OptionsMenu"
+		BloodTextItem "VR Options", "v", "VROptionsMenu"
 		BloodTextItem "$MNU_SAVEGAME", "s", "SaveGameMenu"
 		BloodTextItem "$MNU_LOADGAME", "l", "LoadGameMenu"
 		BloodTextItem "$MNU_HELP", "h", "HelpMenu"
@@ -126,6 +132,7 @@ LISTMENU "IngameMenu"
 		SWTextItem "$MNU_LOADGAME", "l", "LoadGameMenu"
 		SWTextItem "$MNU_SAVEGAME", "s", "SaveGameMenu"
 		SWTextItem "$MNU_OPTIONS", "o", "OptionsMenu"
+		SWTextItem "VR Options", "v", "VROptionsMenu"
 		ifnotgame (shareware)
 		{
 			SWTextItem "$MNU_CREDITS", "c", "CreditsMenu"
@@ -148,6 +155,7 @@ LISTMENU "IngameMenu"
 		ExhumedTextItem "$MNU_SAVEGAME", "s", "SaveGameMenu"
 		//ExhumedTextItem "$TXT_EX_MAP00", "m", "StartGameNoSkill", 1
 		ExhumedTextItem "$MNU_OPTIONS", "v", "OptionsMenu"
+		ExhumedTextItem "VR Options", "v", "VROptionsMenu"
 		ExhumedTextItem "$MNU_QUITGAME", "q", "QuitMenu"
 	}
 }
@@ -501,7 +509,69 @@ OptionMenu "OptionsMenu" protected
 	SafeCommand "$OPTMNU_DEFAULTS",	"reset2defaults"
 	SafeCommand	"$OPTMNU_RESETTOSAVED",	"reset2saved"
 	//Command "$OPTMNU_CONSOLE",			"menuconsole"
-}	
+}
+
+
+//-------------------------------------------------------------------------------------------
+//
+// VR Options Menu
+//
+//-------------------------------------------------------------------------------------------
+
+OptionValue "TurningMode"
+{
+	90, "Snap 90 Degrees"
+	45, "Snap 45 Degrees"
+	30, "Snap 30 Degrees"
+	9, "Smooth Very Fast"
+	6, "Smooth Fast"
+	3, "Smooth Medium"
+	1, "Smooth Slow"
+}
+
+OptionValue "DirectionMode"
+{
+	0, "HMD"
+	1, "Off-hand controller"
+}
+
+OptionValue "ControlScheme"
+{
+	10, "Right Handed"
+	0, "Left Handed"
+}
+
+OptionMenu "VROptionsMenu" protected
+{
+	Title "VR Options"
+	StaticText 	""
+	//Option "Control Scheme",		"vr_control_scheme", "ControlScheme"
+	//Option "Switch Sticks",	"vr_switch_sticks", "YesNo"
+	StaticText 	""
+	Option "Turning Mode",	"vr_snapTurn", "TurningMode"
+	Option "Direction Mode",	"vr_move_use_offhand", "DirectionMode"
+	StaticText 	""
+	Slider "Height Adjust",	"vr_height_adjust", 0.0, 1.0, 0.1
+	StaticText 	""
+	StaticText 	""
+	StaticText 	"Positional Tracking will exacerbate some rendering glitches"
+	StaticText 	"when crossing sector boundaries"
+	StaticText 	""
+	Option "Positional Tracking",	"vr_positional_tracking", "YesNo"
+
+    StaticText ""
+    StaticText "HUD"
+    StaticText ""
+    Slider "VR HUD Scale",		        "vr_hud_scale", 0.05, 1.0, 0.05, 2
+    StaticText ""
+    Slider "VR HUD Stereo Effect",		"vr_hud_stereo", 0.0, 5.0, 0.1, 2
+    Slider "VR HUD Pitch Rotate",		"vr_hud_rotate", 0.0, 50.0, 1.0, 2
+    Option "VR HUD Fix Pitch",		    "vr_hud_fixed_pitch", "OnOff"
+    Option "VR HUD Fix Roll",		    "vr_hud_fixed_roll", "OnOff"
+    StaticText ""
+    SafeCommand "$OPTMNU_DEFAULTS", "resetcvar vr_hud_scale hud_scale vr_hud_stereo vr_hud_rotate vr_hud_fixed_pitch vr_hud_fixed_roll"
+
+}
 
 //-------------------------------------------------------------------------------------------
 //
@@ -1094,6 +1164,8 @@ OptionMenu "VideoOptions" protected
 	Slider "$DSPLYMNU_AMBIENT_LIGHT",			"r_ambientlight",  				0.5, 4.0, 0.1
 
 	StaticText ""
+	Option "Show FPS",					        "vid_fps",						"OnOff"
+	Option "Draw Sky",					        "draw_sky",						"OnOff"
 	Option "$DSPLYMNU_VOXELS",					"r_voxels",						"OnOff"
 	Option "$DSPLYMNU_SHADOWS",					"r_shadows",					"OnOff"
 	Option "$DSPLYMNU_SLOPETILT",				"cl_slopetilting",				"OnOff"
@@ -1107,7 +1179,6 @@ OptionMenu "VideoOptions" protected
 		Option "$DSPLYMNU_VIEWBOB",					"cl_viewvbob",					"OnOff"
 		Option "$DSPLYMNU_VIEWSWAY",				"cl_viewhbob",					"OnOff"
 	}
-	Slider "$DSPLYMNU_FOV",						"r_fov",						60, 130, 10, 1
 
 	StaticText ""
 	Option "$GLPREFMNU_RENDERQUALITY",			gl_seamless,					"Precision"
@@ -1231,7 +1302,6 @@ OptionMenu "AutomapOptions"
 	Option "$AUTOMAPMNU_FOLLOW",				"am_followplayer",				"OnOff"
 	Slider "$AUTOMAPMNU_LINEALPHA",				"am_linealpha", 0.1, 1.0, 0.1, 1
 	Slider "$AUTOMAPMNU_LINETHICKNESS",			"am_linethickness", 1, 8, 1, 0
-	StaticText ""
 
 	// todo:
 	//CVAR(Bool, am_textfont, false, CVAR_ARCHIVE)
@@ -1331,7 +1401,7 @@ OptionMenu "HUDOptions" protected
 
 	StaticText ""
 	Option "$DSPLYMNU_CROSSHAIR",				"cl_crosshair",	OnOff
-	Slider "$DSPLYMNU_CROSSHAIRSCALE",			"crosshairscale",		0.0, 2.0, 0.05, 2
+	Slider "$DSPLYMNU_CROSSHAIRSCALE",			"crosshairscale",		0.25, 1.0, 0.125, 2
 	Option "$HUDMNU_CROSSHAIR",				"crosshair", "Crosshairs"
 	//ColorPicker "$HUDMNU_CROSSHAIRCOLOR", 	"crosshaircolor" fixme: Does not exist yet in Raze.
 	Option "$HUDMNU_CROSSHAIRHEALTH",		"crosshairhealth", "CrosshairHealthTypes"

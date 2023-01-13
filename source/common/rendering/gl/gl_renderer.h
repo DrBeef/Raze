@@ -99,7 +99,7 @@ private:
 	void PresentRowInterleaved();
 	void PresentCheckerInterleaved();
 	void PresentQuadStereo();
-
+	void PresentOpenXR();
 };
 
 struct TexFilter_s

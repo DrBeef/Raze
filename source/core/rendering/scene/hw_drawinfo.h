@@ -100,6 +100,7 @@ struct HWDrawInfo
 	HWDrawList drawlists[GLDL_TYPES];
 	int vpIndex;
 	//ELightMode lightmode;
+	int eye;
 
 	HWDrawInfo * outer = nullptr;
 	int FullbrightFlags;
