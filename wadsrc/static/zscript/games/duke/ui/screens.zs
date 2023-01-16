@@ -495,6 +495,9 @@ class DukeLevelSummaryScreen : SummaryScreenBase
 	TextureID texBg;
 	TextureID texOv[4];
 
+	double text_x;
+	double val_x;
+
 	enum EScreenFlags
 	{
 		printTimeText = 1,
@@ -555,6 +558,37 @@ class DukeLevelSummaryScreen : SummaryScreenBase
 		return false;
 	}
 
+	private void CalcLayout()
+	{
+		static const String texts[] = { "$TXT_YourTime", "$TXT_ParTime", "$TXT_3DRTIME", "$TXT_EnemiesKilled", "$TXT_EnemiesLeft", "$TXT_SECFND", "$TXT_SECMISS" };
+		let myfont = Raze.PickSmallFont();
+		let fact = screen.GetAspectRatio();
+		let vwidth = 320 * 0.75 * fact;
+		let left = 5 + (320 - vwidth) / 2;
+		let twidth = 0.0;
+
+		text_x = 10;
+		val_x = 151;
+		for(int i = 0; i < texts.size(); i++)
+		{
+			twidth = max(twidth, myfont.StringWidth(texts[i]));
+		}
+		if (twidth > 140 && twidth < 156)
+		{
+			val_x += twidth - 140;
+		}
+		else if (twidth >= 156)
+		{
+			val_x = 166;
+			text_x -= twidth - 156;
+			if (text_x < left)
+			{
+				val_x += left - text_x;
+				text_x = left;
+			}
+		}
+	}
+
 	override void Start()
 	{
 		Duke.PlayBonusMusic();
@@ -562,6 +596,7 @@ class DukeLevelSummaryScreen : SummaryScreenBase
 
 	override void OnTick()
 	{
+		CalcLayout();
 		if ((displaystate & printStatsAll) != printStatsAll)
 		{
 			if (ticks == 15 * 3)
@@ -610,23 +645,23 @@ class DukeLevelSummaryScreen : SummaryScreenBase
 	void PrintTime()
 	{
 		String tempbuf;
-		Duke.GameText(10, 59 + 9, "$TXT_YourTime", 0);
-		Duke.GameText(10, 69 + 9, "$TXT_ParTime", 0);
+		Duke.GameText(text_x, 59 + 9, "$TXT_YourTime", 0);
+		Duke.GameText(text_x, 69 + 9, "$TXT_ParTime", 0);
 		if (!Raze.isNamWW2GI())
-			Duke.GameText(10, 79 + 9, "$TXT_3DRTIME", 0);
+			Duke.GameText(text_x, 79 + 9, "$TXT_3DRTIME", 0);
 
 		if (displaystate & printTimeVal)
 		{
 			tempbuf = FormatTime(stats.time);
-			Duke.GameText((320 >> 2) + 71, 59 + 9, tempbuf, 0);
+			Duke.GameText(val_x, 59 + 9, tempbuf, 0);
 
 			tempbuf = FormatTime(level.parTime);
-			Duke.GameText((320 >> 2) + 71, 69 + 9, tempbuf, 0);
+			Duke.GameText(val_x, 69 + 9, tempbuf, 0);
 
 			if (!Raze.isNamWW2GI())
 			{
 				tempbuf = FormatTime(level.designerTime);
-				Duke.GameText((320 >> 2) + 71, 79 + 9, tempbuf, 0);
+				Duke.GameText(val_x, 79 + 9, tempbuf, 0);
 			}
 		}
 	}
@@ -634,13 +669,13 @@ class DukeLevelSummaryScreen : SummaryScreenBase
 	void PrintKills()
 	{
 		String tempbuf;
-		Duke.GameText(10, 94 + 9, "$TXT_EnemiesKilled", 0);
-		Duke.GameText(10, 104 + 9, "$TXT_EnemiesLeft", 0);
+		Duke.GameText(text_x, 94 + 9, "$TXT_EnemiesKilled", 0);
+		Duke.GameText(text_x, 104 + 9, "$TXT_EnemiesLeft", 0);
 
 		if (displaystate & printKillsVal)
 		{
 			tempbuf = String.Format("%-3d", stats.kills);
-			Duke.GameText((320 >> 2) + 70, 94 + 9, tempbuf, 0);
+			Duke.GameText(val_x, 94 + 9, tempbuf, 0);
 
 			if (stats.maxkills < 0)
 			{
@@ -650,22 +685,22 @@ class DukeLevelSummaryScreen : SummaryScreenBase
 			{
 				tempbuf = String.Format("%-3d", max(0, stats.maxkills - stats.kills));
 			}
-			Duke.GameText((320 >> 2) + 70, 104 + 9, tempbuf, 0);
+			Duke.GameText(val_x, 104 + 9, tempbuf, 0);
 		}
 	}
 
 	void PrintSecrets()
 	{
 		String tempbuf;
-		Duke.GameText(10, 119 + 9, "$TXT_SECFND", 0);
-		Duke.GameText(10, 129 + 9, "$TXT_SECMISS", 0);
+		Duke.GameText(text_x, 119 + 9, "$TXT_SECFND", 0);
+		Duke.GameText(text_x, 129 + 9, "$TXT_SECMISS", 0);
 
 		if (displaystate & printSecretsVal)
 		{
 			tempbuf = String.Format("%-3d", stats.secrets);
-			Duke.GameText((320 >> 2) + 70, 119 + 9, tempbuf, 0);
+			Duke.GameText(val_x, 119 + 9, tempbuf, 0);
 			tempbuf = String.Format("%-3d", max(0, stats.maxsecrets - stats.secrets));
-			Duke.GameText((320 >> 2) + 70, 129 + 9, tempbuf, 0);
+			Duke.GameText(val_x, 129 + 9, tempbuf, 0);
 		}
 	}
 
@@ -674,19 +709,6 @@ class DukeLevelSummaryScreen : SummaryScreenBase
 		Screen.DrawTexture(texBg, true, 0, 0, DTA_FullscreenEx, FSMode_ScaleToFit43, DTA_LegacyRenderStyle, STYLE_Normal);
 
 		Duke.GameText(160, 190, "$PRESSKEY", 8 - (sin(ticks * 4) * 8), 0);
-
-		if (displaystate & printTimeText)
-		{
-			PrintTime();
-		}
-		if (displaystate & printKillsText)
-		{
-			PrintKills();
-		}
-		if (displaystate & printSecretsText)
-		{
-			PrintSecrets();
-		}
 
 		if (displaystate & dukeAnim)
 		{
@@ -718,6 +740,20 @@ class DukeLevelSummaryScreen : SummaryScreenBase
 			}
 		}
 
+		if (displaystate & printTimeText)
+		{
+			PrintTime();
+		}
+		if (displaystate & printKillsText)
+		{
+			PrintKills();
+		}
+		if (displaystate & printSecretsText)
+		{
+			PrintSecrets();
+		}
+
+
 		if (lastmapname) Duke.BigText(160, 20 - 6, lastmapname, 0);
 		Duke.BigText(160, 36 - 6, "$Completed", 0);
 	}
@@ -737,6 +773,13 @@ class RRLevelSummaryScreen : SummaryScreenBase
 	int displaystate;
 	int exitSoundStart;
 	TextureID texBg;
+
+	double text_x;
+	double val_x;
+	double val_x2;
+	double press_x;
+	double map_x;
+
 
 	enum EFlags
 	{
@@ -792,6 +835,67 @@ class RRLevelSummaryScreen : SummaryScreenBase
 		return false;
 	}
 
+	private void CalcLayout()
+	{
+		static const String texts[] = { "$TXT_YerTime", "$TXT_ParTime", "$TXT_XTRTIME"}; 
+		static const String texts2[] = { "$TXT_VarmintsKilled", "$TXT_VarmintsLeft", "$TXT_SECFND", "$TXT_SECMISS" };
+		let myfont = Raze.PickBigFont();
+		let fact = screen.GetAspectRatio();
+		let vwidth = 320 * 0.75 * fact;
+		let left = 5 + (320 - vwidth) / 2;
+		let twidth = 0.0;
+		let twidth1 = 0.0;
+
+		text_x = 30;
+		val_x = 191;
+		val_x2 = 231;
+		for(int i = 0; i < texts.size(); i++)
+		{
+			twidth1 = max(twidth1, 0.35 * myfont.StringWidth(texts[i]));
+		}
+		for(int i = 0; i < texts2.size(); i++)
+		{
+			twidth = max(twidth, 0.35 * myfont.StringWidth(texts2[i]));
+		}
+
+		if (twidth1 > 155 && twidth1 < 190 && twidth < 230) 
+		{
+			Console.printf("small case: %f, %f", twidth, val_x);
+			val_x = val_x2;
+			return;
+		}
+		twidth = max(twidth, twidth1 + 40);
+
+		if (twidth >= 195 && twidth < 230)
+		{
+			val_x2 += twidth - 195;
+			val_x = val_x2;
+		}
+		else if (twidth >= 230)
+		{
+			val_x2 = 266;
+			text_x -= twidth - 230;
+			if (text_x < left)
+			{
+				val_x2 += left - text_x;
+				text_x = left;
+			}
+			val_x = val_x2;
+		}
+
+		map_x = 80;
+		let w = myfont.StringWidth(lastmapname) * 0.35;
+		if (w > 320) map_x = -(w - 320) / 2;
+		else if (w > 240) map_x = (320 - w) / 2;
+
+		press_x = 15;
+		w = myfont.StringWidth("$PRESSKEY") * 0.35;
+		if (w > 320) press_x = -(w - 320) / 2;
+		else if (w > 300) press_x = (320 - w) / 2;
+
+	}
+
+
 	override void OnTick()
 	{
 		if ((displaystate & printStatsAll) != printStatsAll)
@@ -841,33 +945,33 @@ class RRLevelSummaryScreen : SummaryScreenBase
 	void PrintTime()
 	{
 		String tempbuf;
-		Duke.BigText(30, 48, "$TXT_YerTime", -1);
-		Duke.BigText(30, 64, "$TXT_ParTime", -1);
-		Duke.BigText(30, 80, "$TXT_XTRTIME", -1);
+		Duke.BigText(text_x, 48, "$TXT_YerTime", -1);
+		Duke.BigText(text_x, 64, "$TXT_ParTime", -1);
+		Duke.BigText(text_x, 80, "$TXT_XTRTIME", -1);
 
 		if (displaystate & printTimeVal)
 		{
 			tempbuf = FormatTime(stats.time);
-			Duke.BigText(191, 48, tempbuf, -1);
+			Duke.BigText(val_x, 48, tempbuf, -1);
 
 			tempbuf = FormatTime(level.parTime);
-			Duke.BigText(191, 64, tempbuf, -1);
+			Duke.BigText(val_x, 64, tempbuf, -1);
 
 			tempbuf = FormatTime(level.designerTime);
-			Duke.BigText(191, 80, tempbuf, -1);
+			Duke.BigText(val_x, 80, tempbuf, -1);
 		}
 	}
 
 	void PrintKills()
 	{
 		String tempbuf;
-		Duke.BigText(30, 112, "$TXT_VarmintsKilled", -1);
-		Duke.BigText(30, 128, "$TXT_VarmintsLeft", -1);
+		Duke.BigText(text_x, 112, "$TXT_VarmintsKilled", -1);
+		Duke.BigText(text_x, 128, "$TXT_VarmintsLeft", -1);
 
 		if (displaystate & printKillsVal)
 		{
 			tempbuf = String.Format("%-3d", stats.kills);
-			Duke.BigText(231, 112, tempbuf, -1);
+			Duke.BigText(val_x2, 112, tempbuf, -1);
 			if (stats.maxkills < 0)
 			{
 				tempbuf = "$TXT_N_A";
@@ -876,31 +980,32 @@ class RRLevelSummaryScreen : SummaryScreenBase
 			{
 				tempbuf = String.Format("%-3d", max(0, stats.maxkills - stats.kills));
 			}
-			Duke.BigText(231, 128, tempbuf, -1);
+			Duke.BigText(val_x2, 128, tempbuf, -1);
 		}
 	}
 
 	void PrintSecrets()
 	{
 		String tempbuf;
-		Duke.BigText(30, 144, "$TXT_SECFND", -1);
-		Duke.BigText(30, 160, "$TXT_SECMISS", -1);
+		Duke.BigText(text_x, 144, "$TXT_SECFND", -1);
+		Duke.BigText(text_x, 160, "$TXT_SECMISS", -1);
 
 		if (displaystate & printSecretsVal)
 		{
 			tempbuf = String.Format("%-3d", stats.secrets);
-			Duke.BigText(231, 144, tempbuf, -1);
+			Duke.BigText(val_x2, 144, tempbuf, -1);
 			tempbuf = String.Format("%-3d", max(0, stats.maxsecrets - stats.secrets));
-			Duke.BigText(231, 160, tempbuf, -1);
+			Duke.BigText(val_x2, 160, tempbuf, -1);
 		}
 	}
 
 	override void Draw(double sr)
 	{
+		CalcLayout();
 		Screen.DrawTexture(texBg, true, 0, 0, DTA_FullscreenEx, FSMode_ScaleToFit43, DTA_LegacyRenderStyle, STYLE_Normal);
 
-		Duke.BigText(80, 16, lastmapname, -1);
-		Duke.BigText(15, 192, "$PRESSKEY", -1);
+		Duke.BigText(map_x, 16, lastmapname, -1);
+		Duke.BigText(press_x, 192, "$PRESSKEY", -1);
 
 		if (displaystate & printTimeText)
 		{

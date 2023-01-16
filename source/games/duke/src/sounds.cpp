@@ -174,19 +174,6 @@ void S_CacheAllSounds(void)
 //
 //==========================================================================
 
-static inline int S_GetPitch(FSoundID soundid)
-{
-	auto const* snd = soundEngine->GetUserData(soundid);
-	if (!snd) return 0;
-	int const   range = abs(snd[kPitchEnd] - snd[kPitchStart]);
-	return (range == 0) ? snd[kPitchStart] : min(snd[kPitchStart], snd[kPitchEnd]) + rand() % range;
-}
-
-float S_ConvertPitch(int lpitch)
-{
-	return powf(2, lpitch / 1200.f);   // I hope I got this right that ASS uses a linear scale where 1200 is a full octave.
-}
-
 int S_GetUserFlags(FSoundID soundid)
 {
 	if (!soundEngine->isValidSoundId(soundid)) return 0;
@@ -222,7 +209,7 @@ int S_DefineSound(unsigned index, const char *filename, int minpitch, int maxpit
 		if (sfx->UserData.Size() >= kMaxUserData)
 		{
 			auto& sndinf = sfx->UserData;
-			settable = !!(sndinf[kFlags] & SF_CONDEFINED);
+			settable = sfx->bExternal;
 		}
 	}
 	if (!settable)
@@ -234,9 +221,6 @@ int S_DefineSound(unsigned index, const char *filename, int minpitch, int maxpit
 			// Set everything to 0 to have default handling.
 			sfx->UserData.Resize(kMaxUserData);
 			auto& sndinf = sfx->UserData;
-			sndinf[kPitchStart] = 0;
-			sndinf[kPitchEnd] = 0;
-			sndinf[kPriority] = 0; // Raze's sound engine does not use this.
 			sndinf[kVolAdjust] = 0;
 			sndinf[kWorldTourMapping] = 0;
 			sndinf[kFlags] = 0;
@@ -245,10 +229,9 @@ int S_DefineSound(unsigned index, const char *filename, int minpitch, int maxpit
 
 	sfx->ResourceId = index;
 	sfx->UserData.Resize(kMaxUserData);
+	sfx->bExternal = true;
 	auto& sndinf = sfx->UserData;
-	sndinf[kFlags] = (type & ~SF_ONEINST_INTERNAL) | SF_CONDEFINED;
-	if (sndinf[kFlags] & SF_LOOP)
-		sndinf[kFlags] |= SF_ONEINST_INTERNAL;
+	sndinf[kFlags] = (type & SF_CON_MASK);
 
 	// Take care of backslashes in sound names. Also double backslashes which occur in World Tour.
 	FString fn = filename;
@@ -263,13 +246,14 @@ int S_DefineSound(unsigned index, const char *filename, int minpitch, int maxpit
 		fn.Substitute(".ogg", ".voc");
 		sfx->lumpnum = S_LookupSound(fn);
 	}
-	sndinf[kPitchStart] = clamp<int>(minpitch, INT16_MIN, INT16_MAX);
-	sndinf[kPitchEnd] = clamp<int>(maxpitch, INT16_MIN, INT16_MAX);
-	sndinf[kPriority] = priority & 255;
+	if (minpitch != 0 || maxpitch != 0)
+	{
+		sfx->DefPitch = (float)pow(2, clamp<int>(minpitch, INT16_MIN, INT16_MAX) / 1200.);
+		sfx->DefPitchMax = (float)pow(2, clamp<int>(maxpitch, INT16_MIN, INT16_MAX) / 1200.);
+	}
 	sndinf[kVolAdjust] = clamp<int>(distance, INT16_MIN, INT16_MAX);
 	sndinf[kWorldTourMapping] = 0;
 	sfx->Volume = volume;
-	//sfx->NearLimit = index == TELEPORTER + 1? 6 : 0; // the teleporter sound cannot be unlimited due to how it gets used.
 	sfx->bTentative = false;
 	return 0;
 }
@@ -501,25 +485,20 @@ int S_PlaySound3D(FSoundID soundid, DDukeActor* actor, const DVector3& pos, int 
 
 	S_GetCamera(&campos, nullptr, &camsect);
 	GetPositionInfo(actor, soundid, camsect, campos, pos, &sndist, &sndpos);
-	int pitch = S_GetPitch(soundid);
 
 	auto sfx = soundEngine->GetSfx(soundid);
 	bool explosion = ((userflags & (SF_GLOBAL | SF_DTAG)) == (SF_GLOBAL | SF_DTAG)) || 
 		((sfx->ResourceId == PIPEBOMB_EXPLODE || sfx->ResourceId == LASERTRIP_EXPLODE || sfx->ResourceId == RPG_EXPLODE));
 
 	bool underwater = ps[screenpeek].insector() && ps[screenpeek].cursector->lotag == ST_2_UNDERWATER;
-	if (explosion)
-	{
-		if (underwater)
-			pitch -= 1024;
-	}
-	else
+	float pitch = 0;
+	if (!explosion)
 	{
 		if (sndist > 32767 && !issoundcontroller(actor) && (userflags & (SF_LOOP | SF_MSFX)) == 0)
 			return -1;
 
 		if (underwater && (userflags & SF_TALK) == 0)
-			pitch = -768;
+			pitch = 0.64f;
 	}
 
 	bool is_playing = soundEngine->GetSoundPlayingInfo(SOURCE_Any, nullptr, soundid);
@@ -528,7 +507,7 @@ int S_PlaySound3D(FSoundID soundid, DDukeActor* actor, const DVector3& pos, int 
 
 	int const repeatp = (userflags & SF_LOOP);
 
-	if (repeatp && (userflags & SF_ONEINST_INTERNAL) && is_playing)
+	if (repeatp && is_playing)
 	{
 		return -1;
 	}
@@ -543,8 +522,16 @@ int S_PlaySound3D(FSoundID soundid, DDukeActor* actor, const DVector3& pos, int 
 	if (userflags & SF_LOOP) flags |= CHANF_LOOP;
 	float vol = attenuation == ATTN_NONE ? 0.8f : 1.f;
 	if (currentCommentarySound != NO_SOUND) vol *= 0.25f;
-	auto chan = soundEngine->StartSound(SOURCE_Actor, actor, &sndpos, CHAN_AUTO, flags, soundid, vol, attenuation, nullptr, S_ConvertPitch(pitch));
-	if (chan) chan->UserData = (currentCommentarySound != NO_SOUND);
+	auto chan = soundEngine->StartSound(SOURCE_Actor, actor, &sndpos, CHAN_AUTO, flags, soundid, vol, attenuation, nullptr, pitch);
+	if (chan)
+	{
+		if (explosion && underwater) 
+		{
+			pitch = float(chan->Pitch? chan->Pitch * (0.55 / 128) : 0.55);	// todo: fix pitch storage in backend.
+			soundEngine->SetPitch(chan, pitch);
+		}
+		chan->UserData = (currentCommentarySound != NO_SOUND);
+	}
 	return chan ? 0 : -1;
 }
 
@@ -564,11 +551,9 @@ int S_PlaySound(FSoundID soundid, int channel, EChanFlags flags, float vol)
 	if ((!(snd_speech & 1) && (userflags & SF_TALK)))
 		return -1;
 
-	int const pitch = S_GetPitch(soundid);
-
 	if (userflags & SF_LOOP) flags |= CHANF_LOOP;
 	if (currentCommentarySound != NO_SOUND) vol *= 0.25f;
-	auto chan = soundEngine->StartSound(SOURCE_None, nullptr, nullptr, channel, flags, soundid, vol, ATTN_NONE, nullptr, S_ConvertPitch(pitch));
+	auto chan = soundEngine->StartSound(SOURCE_None, nullptr, nullptr, channel, flags, soundid, vol, ATTN_NONE, nullptr);
 	if (chan) chan->UserData = (currentCommentarySound != NO_SOUND);
 	return chan ? 0 : -1;
 }

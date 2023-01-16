@@ -42,9 +42,11 @@
 #include "s_music.h"
 #include "sc_man.h"
 #include "s_soundinternal.h"
+#include "gamecontrol.h"
 #include <zmusic.h>
 
 #include "raze_music.h"
+#include "games/duke/src/sounds.h"
 
 // MACROS ------------------------------------------------------------------
 
@@ -56,7 +58,12 @@ enum SICommands
 	SI_ConReserve,
 	SI_Alias,
 	SI_Limit,
-	SI_Singular
+	SI_Singular,
+	SI_PitchSet,
+	SI_PitchSetDuke,
+	SI_DukeFlags,
+	SI_Loop,
+	SI_BloodRelVol,
 };
 
 
@@ -87,6 +94,11 @@ static const char *SICommandStrings[] =
 	"$alias",
 	"$limit",
 	"$singular",
+	"$pitchset",
+	"$pitchsetduke",
+	"$dukeflags",
+	"$loop",
+	"$bloodrelvol",
 	NULL
 };
 
@@ -287,6 +299,46 @@ static void S_AddSNDINFO (int lump)
 				}
 				break;
 
+			case SI_PitchSet: {
+				// $pitchset <logical name> <pitch amount as float> [range maximum]
+				FSoundID sfx;
+
+				sc.MustGetString();
+				sfx = soundEngine->FindSoundTentative(sc.String);
+				sc.MustGetFloat();
+				auto sfxp = soundEngine->GetWritableSfx(sfx);
+				sfxp->DefPitch = (float)sc.Float;
+				if (sc.CheckFloat())
+				{
+					sfxp->DefPitchMax = (float)sc.Float;
+				}
+				else
+				{
+					sfxp->DefPitchMax = 0;
+				}
+			}
+			break;
+
+			case SI_PitchSetDuke: {
+				// $pitchset <logical name> <pitch amount as float> [range maximum]
+				// Same as above, but uses Duke's value range of 1200 units per octave.
+				FSoundID sfx;
+
+				sc.MustGetString();
+				sfx = soundEngine->FindSoundTentative(sc.String);
+				sc.MustGetFloat();
+				auto sfxp = soundEngine->GetWritableSfx(sfx);
+				sfxp->DefPitch = (float)pow(2, sc.Float / 1200.);
+				if (sc.CheckFloat())
+				{
+					sfxp->DefPitchMax = (float)pow(2, sc.Float / 1200.);
+				}
+				else
+				{
+					sfxp->DefPitchMax = 0;
+				}
+				break;
+			}
 
 			case SI_ConReserve: {
 				// $conreserve <logical name> <resource id>
@@ -299,6 +351,75 @@ static void S_AddSNDINFO (int lump)
 				sfxp->ResourceId = sc.Number;
 				break;
 				}
+
+			case SI_DukeFlags: {
+				static const char* dukeflags[] = { "LOOP", "MSFX", "TALK", "GLOBAL", nullptr};
+
+				// dukesound <logical name> <flag> <flag> <flag>..
+				// Sets a pitch range for the sound.
+				sc.MustGetString();
+				auto sfxid = soundEngine->FindSoundTentative(sc.String, DEFAULT_LIMIT);
+				int flags = 0;
+				while (sc.GetString())
+				{
+					int bit = sc.MatchString(dukeflags);
+					if (bit == -1) break;
+					flags |= 1 << bit;
+				}
+				if (isDukeEngine())
+				{
+					auto sfx = soundEngine->GetWritableSfx(sfxid);
+					if (sfx->UserData.Size() < Duke3d::kMaxUserData)
+					{
+						sfx->UserData.Resize(Duke3d::kMaxUserData);
+						memset(sfx->UserData.Data(), 0, Duke3d::kMaxUserData * sizeof(int));
+					}
+					sfx->UserData[Duke3d::kFlags] = flags;
+				}
+				else
+				{
+					sc.ScriptMessage("'$dukeflags' is not available in the current game and will be ignored");
+				}
+				break;
+
+			}
+
+			case SI_Loop: {
+				// loop <logical name> <start> <end>
+				// Sets loop points for the given sound in samples. Only really useful for WAV - for Ogg and FLAC use the metadata they can contain.
+				sc.MustGetString();
+				auto sfxid = soundEngine->FindSoundTentative(sc.String, DEFAULT_LIMIT);
+				auto sfx = soundEngine->GetWritableSfx(sfxid);
+				sc.MustGetNumber();
+				sfx->LoopStart = sc.Number;
+				if (sc.CheckNumber())
+					sfx->LoopEnd = sc.Number;
+				break;
+			}
+
+			case SI_BloodRelVol: {
+				// bloodrelvol <logical name> <value>
+				// Sets Blood's hacky volume modifier.
+				sc.MustGetString();
+				auto sfxid = soundEngine->FindSoundTentative(sc.String, DEFAULT_LIMIT);
+				auto sfx = soundEngine->GetWritableSfx(sfxid);
+				sc.MustGetNumber();
+				if (isBlood())
+				{
+					auto sfx = soundEngine->GetWritableSfx(sfxid);
+					if (sfx->UserData.Size() < 1)
+					{
+						sfx->UserData.Resize(1);
+					}
+					sfx->UserData[0] = sc.Number;
+				}
+				else
+				{
+					sc.ScriptMessage("'$bloodrelvol' is not available in the current game and will be ignored");
+				}
+				break;
+			}
+
 
 			default:
 			{ // Got a logical sound mapping
