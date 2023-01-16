@@ -423,13 +423,21 @@ void Display()
 	screen->FrameTime = I_msTimeFS();
 	tileUpdateAnimations();
 	screen->BeginFrame();
+
+	//Player Sprite
 	twodpsp.Clear();
 	twodpsp.SetSize(screen->GetWidth(), screen->GetHeight());
 	twodpsp.ClearClipRect();
+
+	//Adjustable HUD
 	twod->Clear();
-	//twod->SetSize(screen->GetWidth(), screen->GetHeight());
 	twod->Begin(screen->GetWidth(), screen->GetHeight());
 	twod->ClearClipRect();
+
+	//Fullscreen Palette Blends and Crosshair
+	twod_blend->Clear();
+	twod_blend->Begin(screen->GetWidth(), screen->GetHeight());
+	twod_blend->ClearClipRect();
 
 	if (gamestate == GS_LEVEL && menuactive == MENU_Off) {
 		RazeXR_setUseScreenLayer(false);

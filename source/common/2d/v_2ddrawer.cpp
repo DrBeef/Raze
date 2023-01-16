@@ -44,7 +44,9 @@
 #include "texturemanager.h"
 
 static F2DDrawer drawer = F2DDrawer();
+static F2DDrawer blend_drawer = F2DDrawer(true);
 F2DDrawer* twod = &drawer;
+F2DDrawer* twod_blend = &blend_drawer;
 
 EXTERN_CVAR(Float, transsouls)
 CVAR(Float, classic_scaling_factor, 1.0, CVAR_ARCHIVE)

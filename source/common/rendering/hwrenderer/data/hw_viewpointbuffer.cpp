@@ -86,17 +86,17 @@ int HWViewpointBuffer::Bind(FRenderState &di, unsigned int index)
 void HWViewpointBuffer::Set2D(F2DDrawer *drawer, FRenderState &di, int width, int height, int pll)
 {
 	const bool isIn2D = drawer == nullptr || drawer->isIn2D;
-	const bool isDrawingFullscreen = (gamestate != GS_LEVEL) || menuactive != MENU_Off;
+	const bool isDrawingFullscreen = (gamestate != GS_LEVEL) || menuactive != MENU_Off || drawer->forceFullscreen;
 	{
 		HWViewpointUniforms matrices;
 
-	matrices.mViewMatrix.loadIdentity();
-	matrices.mNormalViewMatrix.loadIdentity();
-	matrices.mViewHeight = 0;
-	matrices.mGlobVis = 1.f;
-	matrices.mPalLightLevels = pll;
-	matrices.mClipLine.X = -10000000.0f;
-	matrices.mShadowmapFilter = gl_shadowmap_filter;
+		matrices.mViewMatrix.loadIdentity();
+		matrices.mNormalViewMatrix.loadIdentity();
+		matrices.mViewHeight = 0;
+		matrices.mGlobVis = 1.f;
+		matrices.mPalLightLevels = pll;
+		matrices.mClipLine.X = -10000000.0f;
+		matrices.mShadowmapFilter = gl_shadowmap_filter;
 
 		if (isDrawingFullscreen && isIn2D) //fullscreen 2D
 		{

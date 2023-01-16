@@ -139,7 +139,7 @@ void ST_DrawCrosshair(int phealth, double xpos, double ypos, double scale, DAngl
 
 	if (crosshairscale > 0.0f)
 	{
-		size = twod->GetHeight() * crosshairscale * 0.005;
+		size = twod_blend->GetHeight() * crosshairscale * 0.005;
 	}
 	else
 	{
@@ -204,7 +204,7 @@ void ST_DrawCrosshair(int phealth, double xpos, double ypos, double scale, DAngl
 		color = crosshaircolor;
 	}
 
-	DrawTexture(twod, CrosshairImage,
+	DrawTexture(twod_blend, CrosshairImage,
 		xpos, ypos,
 		DTA_DestWidth, w,
 		DTA_DestHeight, h,

@@ -500,6 +500,7 @@ void VulkanRenderDevice::InitLightmap(int LMTextureSize, int LMTextureCount, TAr
 void VulkanRenderDevice::Draw2D()
 {
 	::Draw2D(twod, *mRenderState);
+	::Draw2D(twod_blend, *mRenderState);
 }
 
 void VulkanRenderDevice::WaitForCommands(bool finish)

@@ -64,8 +64,9 @@ enum class SpecialDrawCommand {
 class F2DDrawer
 {
 public:
-	F2DDrawer() {
+	F2DDrawer(bool forceFullscreen = false) {
 		this->transform.Identity();
+		this->forceFullscreen = forceFullscreen;
 	}
 
 	enum EDrawType : uint8_t
@@ -193,6 +194,7 @@ public:
 	TArray<RenderCommand> mData;
 	int Width, Height;
 	bool isIn2D;
+	bool forceFullscreen;
 	bool locked = false;	// prevents clearing of the data so it can be reused multiple times (useful for screen fades)
 	float screenFade = 1.f;
 	DVector2 offset;

@@ -241,6 +241,7 @@ double AspectPspriteOffset(float aspect);
 int AspectMultiplier(float aspect);
 bool AspectTallerThanWide(float aspect);
 
+extern F2DDrawer* twod_blend;
 extern F2DDrawer* twod;
 
 int GetUIScale(F2DDrawer* drawer, int altval);

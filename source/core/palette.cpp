@@ -479,14 +479,14 @@ void DrawFullscreenBlends()
     if (tint_blood_r | tint_blood_g | tint_blood_b)
     {
         PalEntry color2(255, max(-tint_blood_r, 0), max(-tint_blood_g, 0), max(-tint_blood_b, 0));
-        twod->AddColorOnlyQuad(0, 0, twod->GetWidth(), twod->GetHeight(), color2, &LegacyRenderStyles[STYLE_Subtract], true);
+        twod_blend->AddColorOnlyQuad(0, 0, twod_blend->GetWidth(), twod_blend->GetHeight(), color2, &LegacyRenderStyles[STYLE_Subtract], true);
         PalEntry color(255, max(tint_blood_r, 0), max(tint_blood_g, 0), max(tint_blood_b, 0));
-        twod->AddColorOnlyQuad(0, 0, twod->GetWidth(), twod->GetHeight(), color, &LegacyRenderStyles[STYLE_Add], true);
+        twod_blend->AddColorOnlyQuad(0, 0, twod_blend->GetWidth(), twod_blend->GetHeight(), color, &LegacyRenderStyles[STYLE_Add], true);
     }
 
     if (palfadergb.a > 0)
     {
-        twod->AddColorOnlyQuad(0, 0, twod->GetWidth(), twod->GetHeight(), palfadergb, &LegacyRenderStyles[STYLE_Translucent], true);
+        twod_blend->AddColorOnlyQuad(0, 0, twod_blend->GetWidth(), twod_blend->GetHeight(), palfadergb, &LegacyRenderStyles[STYLE_Translucent], true);
     }
 }
 

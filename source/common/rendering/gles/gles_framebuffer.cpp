@@ -442,6 +442,7 @@ void OpenGLFrameBuffer::Draw2D()
 	{
 		GLRenderer->mBuffers->BindCurrentFB();
 		::Draw2D(twod, gl_RenderState);
+		::Draw2D(twod_blend, gl_RenderState);
 	}
 }
 
