@@ -209,7 +209,7 @@ FRenderViewpoint SetupViewpoint(DCoreActor* cam, const DVector3& position, int s
 	VR_GetMove(&dummy, &dummy, &dummy, &dummy, &dummy, &yaw, &pitch, &roll);
 
 	//Don't do the following if rendering a camera tex
-	if (!(cam->spr.cstat & CSTAT_SPRITE_INVISIBLE))
+	if (!cam || !(cam->spr.cstat & CSTAT_SPRITE_INVISIBLE))
 	{
 		//Yaw
 		float hmdYawDeltaDegrees;
@@ -238,7 +238,7 @@ FRenderViewpoint SetupViewpoint(DCoreActor* cam, const DVector3& position, int s
 	r_viewpoint.SectNums = nullptr;
 	r_viewpoint.SectCount = sectnum;
 	r_viewpoint.Pos = { position.X, -position.Y, -position.Z };
-	if (cam->spr.cstat & CSTAT_SPRITE_INVISIBLE)
+	if (cam && cam->spr.cstat & CSTAT_SPRITE_INVISIBLE)
 	{
 		r_viewpoint.HWAngles.Yaw = FAngle::fromDeg(-90.f + (float)angles.Yaw.Degrees());
 	}
