@@ -158,7 +158,7 @@ void DrawVersionString ()
 
 		int textScale = active_con_scale(twod) * 3;
 
-		mysnprintf(buff, countof(buff), "Team Beef Presents - %s", RAZEXR_VERSIONSTR);
+		mysnprintf(buff, countof(buff), "Team Beef Presents - %s  (Raze ver. %s)", RAZEXR_VERSIONSTR, VERSIONSTR);
 		DrawText(twod, ConFont, CR_WHITE, 0, 0, (char *) &buff[0],
 				 DTA_VirtualWidth, screen->GetWidth() / textScale,
 				 DTA_VirtualHeight, screen->GetHeight() / textScale,

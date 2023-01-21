@@ -448,8 +448,7 @@ RAZEXR_SRC_FILES :=  ${TOP_DIR}/RazeXR/RazeXR_OpenXR.cpp \
        ${TOP_DIR}/RazeXR/mathlib.c \
        ${TOP_DIR}/RazeXR/matrixlib.c \
        ${TOP_DIR}/RazeXR/argtable3.c \
-       ${TOP_DIR}/RazeXR/OpenXRInput_MetaQuest.cpp \
-       ${TOP_DIR}/RazeXR/OpenXRInput_PicoXR.cpp
+       ${TOP_DIR}/RazeXR/OpenXRInput.cpp
 
 SYSTEM_SOURCES  = ${PLAT_POSIX_SOURCES} ${PLAT_SDL_SOURCES} ${PLAT_UNIX_SOURCES}
 
