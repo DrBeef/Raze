@@ -1406,7 +1406,7 @@ void InitAmbient(int num, DSWActor* actor);
 
 inline void PlaySound(int num, PLAYER* player, int flags, int channel = 8, EChanFlags sndflags = CHANF_NONE)
 {
-    _PlaySound(num, nullptr, player, nullptr, flags, channel, sndflags);
+    _PlaySound(num, nullptr, player, nullptr, flags | v3df_follow, channel, sndflags);
 }
 inline void PlaySound(int num, int flags, int channel = 8, EChanFlags sndflags = CHANF_NONE)
 {
@@ -1521,9 +1521,6 @@ extern int lockspeed;
 // Various scattered constants
 enum
 {
-    synctics = 3,
-    ACTORMOVETICS = (synctics << 1),
-    TICSPERMOVEMENT = synctics,
     ACTOR_GRAVITY = 8,
     // subtract value from clipdist on getzrange calls
     STAT_DAMAGE_LIST_SIZE = 20,
@@ -1534,6 +1531,11 @@ enum
     ANIM_ZILLA  =3
 
 };
+
+constexpr int synctics = 3;
+constexpr int ACTORMOVETICS = (synctics << 1);
+constexpr int TICSPERMOVEMENT = synctics;
+
 
 constexpr double GETZRANGE_CLIP_ADJ = 0.5;
 

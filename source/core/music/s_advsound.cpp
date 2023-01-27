@@ -149,6 +149,7 @@ static FSoundID S_AddSound(const char* logicalname, int lumpnum, FScanner* sc)
 FSoundID S_AddSound(const char* logicalname, const char* lumpname, FScanner* sc)
 {
 	int lump = fileSystem.CheckNumForFullName(lumpname, true, ns_sounds);
+	if (lump == -1 && sc) sc->ScriptMessage("%s: sound file not found", sc->String);
 	return S_AddSound(logicalname, lump, sc);
 }
 
@@ -425,6 +426,10 @@ static void S_AddSNDINFO (int lump)
 
 			default:
 			{ // Got a logical sound mapping
+				if (sc.String[0] == '$')
+				{
+					sc.ScriptError("%s: Unknown keyword");
+				}
 				FString name (sc.String);
 				if (wantassigns == -1)
 				{
