@@ -4,11 +4,9 @@ LOCAL_PATH := $(call my-dir)/../source
 include $(CLEAR_VARS)
 
 
-
 # Uncomment for the correct headset - slight changes required in OpenXR implementation
-OPENXR_HMD = -DMETA_QUEST
-#OPENXR_HMD = -DPICO_XR
-
+OPENXR_HMD = META_QUEST
+#OPENXR_HMD = PICO_XR
 
 
 LOCAL_SHORT_COMMANDS := true
@@ -16,13 +14,8 @@ APP_SHORT_COMMANDS := true
 
 LOCAL_MODULE    := raze
 
-LOCAL_CFLAGS   := $(OPENXR_HMD) -funsigned-char  -DHAVE_GLES2 -DUSE_OPENGL -DNO_CLOCK_GETTIME -DUSE_GL_HW_BUFFERS -fvisibility=hidden -frtti  -D__MOBILE__  -DOPNMIDI_DISABLE_GX_EMULATOR -DGZDOOM  -DGZDOOM_GL3 -D__STDINT_LIMITS -DENGINE_NAME=\"gzdoom_dev\"
-#-DNO_PIX_BUFF
-#-DUSE_GL_HW_BUFFERS
-#-DHAVE_VULKAN
-#-DUSE_GL_HW_BUFFERS
-
-LOCAL_CPPFLAGS := $(OPENXR_HMD) -include g_pch.h -DHAVE_FLUIDSYNTH -DHAVE_MPG123 -DHAVE_SNDFILE -std=c++17  -Wno-inconsistent-missing-override -Werror=format-security  -fexceptions -fpermissive -Dstricmp=strcasecmp -Dstrnicmp=strncasecmp -D__forceinline=inline -DNO_GTK -DNO_SSE
+LOCAL_CFLAGS   := -D$(OPENXR_HMD) -funsigned-char  -DHAVE_GLES2 -DUSE_OPENGL -DNO_CLOCK_GETTIME -DUSE_GL_HW_BUFFERS -fvisibility=hidden -frtti  -D__MOBILE__  -DOPNMIDI_DISABLE_GX_EMULATOR -DGZDOOM  -DGZDOOM_GL3 -D__STDINT_LIMITS -DENGINE_NAME=\"gzdoom_dev\"
+LOCAL_CPPFLAGS := -D$(OPENXR_HMD) -include g_pch.h -DHAVE_FLUIDSYNTH -DHAVE_MPG123 -DHAVE_SNDFILE -std=c++17  -Wno-inconsistent-missing-override -Werror=format-security  -fexceptions -fpermissive -Dstricmp=strcasecmp -Dstrnicmp=strncasecmp -D__forceinline=inline -DNO_GTK -DNO_SSE
 
 LOCAL_CFLAGS  += -DNO_SEND_STATS
 
@@ -494,5 +487,5 @@ LOCAL_SHARED_LIBRARIES :=  openxr_loader openal zmusic
 include $(BUILD_SHARED_LIBRARY)
 
 
-$(call import-module,OpenXR/Projects/AndroidPrebuilt/jni)
+$(call import-module,AndroidPrebuilt/jni)
 
