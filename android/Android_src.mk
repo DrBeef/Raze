@@ -17,17 +17,11 @@ LOCAL_MODULE    := raze
 LOCAL_CFLAGS   := -D$(OPENXR_HMD) -funsigned-char  -DHAVE_GLES2 -DUSE_OPENGL -DNO_CLOCK_GETTIME -DUSE_GL_HW_BUFFERS -fvisibility=hidden -frtti  -D__MOBILE__  -DOPNMIDI_DISABLE_GX_EMULATOR -DGZDOOM  -DGZDOOM_GL3 -D__STDINT_LIMITS -DENGINE_NAME=\"gzdoom_dev\"
 LOCAL_CPPFLAGS := -D$(OPENXR_HMD) -include g_pch.h -DHAVE_FLUIDSYNTH -DHAVE_MPG123 -DHAVE_SNDFILE -std=c++17  -Wno-inconsistent-missing-override -Werror=format-security  -fexceptions -fpermissive -Dstricmp=strcasecmp -Dstrnicmp=strncasecmp -D__forceinline=inline -DNO_GTK -DNO_SSE
 
-LOCAL_CFLAGS  += -DNO_SEND_STATS
-
 LOCAL_CFLAGS  += -DOPNMIDI_USE_LEGACY_EMULATOR
 LOCAL_CFLAGS  += -DADLMIDI_DISABLE_MUS_SUPPORT -DADLMIDI_DISABLE_XMI_SUPPORT -DADLMIDI_DISABLE_MIDI_SEQUENCER
 LOCAL_CFLAGS  += -DOPNMIDI_DISABLE_MUS_SUPPORT -DOPNMIDI_DISABLE_XMI_SUPPORT -DOPNMIDI_DISABLE_MIDI_SEQUENCER
 
-ifeq ($(BUILD_SERIAL),1)
-LOCAL_CPPFLAGS += -DANTI_HACK 
-endif
 
-	
 LOCAL_C_INCLUDES := \
 	$(TOP_DIR)/../../../../../3rdParty/khronos/openxr/OpenXR-SDK/include \
 	$(TOP_DIR)/../../../../../3rdParty/khronos/openxr/OpenXR-SDK/src/common \

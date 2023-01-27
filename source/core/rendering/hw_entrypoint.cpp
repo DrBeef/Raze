@@ -208,8 +208,11 @@ FRenderViewpoint SetupViewpoint(DCoreActor* cam, const DVector3& position, int s
 	float dummy, yaw, pitch, roll;
 	VR_GetMove(&dummy, &dummy, &dummy, &dummy, &dummy, &yaw, &pitch, &roll);
 
-	//Don't do the following if rendering a camera tex
-	if (!cam || !(cam->spr.cstat & CSTAT_SPRITE_INVISIBLE))
+	//Special handling for Duke's security cameras
+    bool renderingSecurityCamera = isDuke() && (cam && cam->spr.cstat & CSTAT_SPRITE_INVISIBLE);
+
+	//Only do the following if not rendering a camera tex
+	if (!renderingSecurityCamera)
 	{
 		//Yaw
 		float hmdYawDeltaDegrees;
@@ -238,7 +241,7 @@ FRenderViewpoint SetupViewpoint(DCoreActor* cam, const DVector3& position, int s
 	r_viewpoint.SectNums = nullptr;
 	r_viewpoint.SectCount = sectnum;
 	r_viewpoint.Pos = { position.X, -position.Y, -position.Z };
-	if (cam && cam->spr.cstat & CSTAT_SPRITE_INVISIBLE)
+	if (renderingSecurityCamera)
 	{
 		r_viewpoint.HWAngles.Yaw = FAngle::fromDeg(-90.f + (float)angles.Yaw.Degrees());
 	}
