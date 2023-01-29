@@ -115,6 +115,28 @@ class DukeActor : CoreActor native
 		STAT_REMOVED		= MAXSTATUS-2,
 
 	};
+
+	enum amoveflags_t
+	{
+		face_player       = 1,
+		geth              = 2,
+		getv              = 4,
+		random_angle      = 8,
+		face_player_slow  = 16,
+		spin              = 32,
+		face_player_smart = 64,
+		fleeenemy         = 128,
+		jumptoplayer_only = 256,
+		justjump1 = 256,
+		jumptoplayer      = 257,
+		seekplayer        = 512,
+		furthestdir       = 1024,
+		dodgebullet       = 4096,
+		justjump2         = 8192,
+		windang           = 16384,
+		antifaceplayerslow = 32768
+	};
+
 	
 	native void SetSpritesetImage(int index);
 	native int GetSpritesetSize();
@@ -187,7 +209,6 @@ class DukeActor : CoreActor native
 	
 	virtual void BeginPlay() {}
 	virtual void StaticSetup() {}
-	virtual void Initialize() {}
 	virtual void onHit(DukeActor hitter) { checkhitdefault(hitter); }
 	virtual void onHurt(DukePlayer p) {}
 	virtual bool onUse(DukePlayer user) { return false; }
@@ -208,6 +229,7 @@ class DukeActor : CoreActor native
 	native void hitradius(int r, int hp1, int hp2, int hp3, int hp4);
 	native double, DukeActor hitasprite();
 	native int badguy();
+	native int scripted();
 	native int isplayer();
 	native void lotsofstuff(Name type, int count);
 	native double gutsoffset();
@@ -229,32 +251,25 @@ class DukeActor : CoreActor native
 	deprecated("4.9") native bool checktype(String name);	// this must not stay in the code, so mark it deprecated to keep the annoying warning at startup.
 	
 	
-	void commonEnemySetup(bool countkill = true)
+	
+	virtual void Initialize()
 	{
-		if (!self.mapSpawned) self.lotag = 0;
-
-		if ((self.lotag > ud.player_skill) || ud.monsters_off == 1)
+		if (!self.badguy() && self.scripted())
 		{
-			self.scale = (0, 0);
-			self.ChangeStat(STAT_MISC);
-		}
-		else
-		{
-			self.makeitfall();
+			if (!self.mapSpawned) self.lotag = 0;
 
-			self.cstat |= CSTAT_SPRITE_BLOCK_ALL;
-			if (countkill)
-				Duke.GetLocalPlayer().max_actors_killed++;
-
-			if (!self.mapSpawned)
+			if (self.lotag > ud.player_skill)
 			{
-				self.timetosleep = 0;
-				self.PlayFTASound();
-				self.ChangeStat(STAT_ACTOR);
+				self.scale = (0, 0);
+				self.ChangeStat(STAT_MISC);
 			}
-			else self.ChangeStat(STAT_ZOMBIEACTOR);
+			self.clipdist = 10;
+			self.ownerActor = self;
+			self.ChangeStat(STAT_ACTOR);
 		}
+		
 	}
+	
 	
 	int checkLocationForFloorSprite(double radius)
 	{

@@ -212,6 +212,20 @@ DEFINE_ACTION_FUNCTION_NATIVE(_Duke, StopCommentary, StopCommentary)
 	return 0;
 }
 
+int getPlayerIndex(player_struct* p)
+{
+	if (!p) return -1;
+	return int(p - ps);
+}
+
+DEFINE_ACTION_FUNCTION_NATIVE(_Duke, getPlayerIndex, getPlayerIndex)
+{
+	PARAM_PROLOGUE;
+	PARAM_POINTER(p, player_struct);
+	ACTION_RETURN_INT(getPlayerIndex(p));
+	return 0;
+}
+
 DEFINE_GLOBAL_UNSIZED(dlevel)
 DEFINE_GLOBAL(camsprite)
 
@@ -607,6 +621,17 @@ DEFINE_ACTION_FUNCTION_NATIVE(DDukeActor, badguy, badguy)
 {
 	PARAM_SELF_PROLOGUE(DDukeActor);
 	ACTION_RETURN_INT(badguy(self));
+}
+
+int duke_scripted(DDukeActor* act)
+{
+	return gs.actorinfo[act->spr.picnum].scriptaddress > 0;
+}
+
+DEFINE_ACTION_FUNCTION_NATIVE(DDukeActor, scripted, duke_scripted)
+{
+	PARAM_SELF_PROLOGUE(DDukeActor);
+	ACTION_RETURN_INT(duke_scripted(self));
 }
 
 int duke_isplayer(DDukeActor* act)

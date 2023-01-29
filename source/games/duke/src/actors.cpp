@@ -577,9 +577,11 @@ void tickstat(int stat, bool deleteinvalid)
 		if (actorflag(act, SFLAG2_DIENOW) || act->sector() == nullptr || (deleteinvalid && act->spr.scale.X == 0))
 		{
 			act->Destroy();
-			continue;
 		}
-		CallTick(act);
+		else if (stat != STAT_ACTOR || !badguy(act) || !monsterCheatCheck(act))
+		{
+			CallTick(act);
+		}
 	}
 }
 
@@ -2964,6 +2966,8 @@ void getglobalz(DDukeActor* actor)
 
 void makeitfall(DDukeActor* actor)
 {
+	if (actorflag(actor, SFLAG3_NOGRAVITY)) return;
+
 	double grav;
 
 	if( floorspace(actor->sector()) )
@@ -2993,7 +2997,7 @@ void makeitfall(DDukeActor* actor)
 
 	if( actor->spr.pos.Z < actor->floorz - FOURSLEIGHT_F)
 	{
-		if( actor->sector()->lotag == 2 && actor->vel.Z > 3122/256.)
+		if( actor->sector()->lotag == ST_2_UNDERWATER && actor->vel.Z > 3122/256.)
 			actor->vel.Z = 3144 / 256.;
 		if (actor->vel.Z < 24)
 			actor->vel.Z += grav;

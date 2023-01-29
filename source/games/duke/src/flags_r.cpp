@@ -232,6 +232,7 @@ void initactorflags_r()
 		RTILE_SHITBALL,
 		RTILE_RPG,
 		RTILE_RECON,
+		RTILE_POWDERKEG
 		});
 	// Animals were not supposed to have this, but due to a coding bug the logic was unconditional for everything in the game.
 	for (auto& ainf : gs.actorinfo)

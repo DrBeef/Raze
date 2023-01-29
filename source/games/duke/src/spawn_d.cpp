@@ -59,7 +59,7 @@ DDukeActor* spawninit_d(DDukeActor* actj, DDukeActor* act, TArray<DDukeActor*>* 
 
 	if (act->GetClass() != RUNTIME_CLASS(DDukeActor))
 	{
-		if (spawninitdefault(actj, act))
+		if (!badguy(act) || commonEnemySetup(act, actj))
 			CallInitialize(act);
 		return act;
 	}
@@ -123,11 +123,6 @@ DDukeActor* spawninit_d(DDukeActor* actj, DDukeActor* act, TArray<DDukeActor*>* 
 					ChangeActorStat(act, STAT_ZOMBIEACTOR);
 			}
 			return act;
-		case DTILE_FIREFLYFLYINGEFFECT:
-			act->SetOwner(actj);
-			ChangeActorStat(act, STAT_MISC);
-			act->spr.scale = DVector2(0.25, 0.25);
-			return act;
 		case DTILE_LAVAPOOLBUBBLE:
 			if (actj->spr.scale.X < 0.46875)
 				return act;
@@ -154,7 +149,7 @@ DDukeActor* spawninit_d(DDukeActor* actj, DDukeActor* act, TArray<DDukeActor*>* 
 	switch (act->spr.picnum)
 	{
 	default:
-		spawninitdefault(actj, act);
+		CallInitialize(act);
 		break;
 	case FOF:
 		act->spr.scale = DVector2(0, 0);
