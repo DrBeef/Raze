@@ -64,8 +64,6 @@ CVAR(Float, vr_ipd, 0.062f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG) // METERS
 // distance between viewer and the display screen
 CVAR(Float, vr_screendist, 0.80f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // METERS
 
-CVAR(Float, vr_hunits_per_meter, 24.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // METERS
-
 CVAR(Float, vr_height_adjust, 0.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // METERS
 CVAR(Int, vr_control_scheme, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 CVAR(Bool, vr_move_use_offhand, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -93,16 +91,33 @@ CVAR(Bool, vr_hud_fixed_roll, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 int playerHeight = 0;
 
+extern int g_gameType;
+#define  GAMEFLAG_DUKE	0x00000001
+inline bool isDuke()
+{
+	return g_gameType & (GAMEFLAG_DUKE);
+}
+
+float vr_hunits_per_meter()
+{
+	if (isDuke())
+	{
+		return 24.0f;
+	}
+
+	return 41.0f;
+}
+
 float getHmdAdjustedHeightInMapUnit()
 {
 	if (playerHeight != 0)
 	{
-		return ((hmdPosition[1] + vr_height_adjust) * vr_hunits_per_meter) -
+		return ((hmdPosition[1] + vr_height_adjust) * vr_hunits_per_meter()) -
 			   playerHeight;
 	}
 
 	//Just use offset from origin
-	return ((hmdPosition[1] - hmdOrigin[1]) * vr_hunits_per_meter);
+	return ((hmdPosition[1] - hmdOrigin[1]) * vr_hunits_per_meter());
 }
 
 #define isqrt2 0.7071067812f
@@ -191,14 +206,14 @@ VSMatrix VREyeInfo::GetHUDProjection(int width, int height) const
 	VSMatrix new_projection;
 	new_projection.loadIdentity();
 
-	float stereo_separation = (vr_ipd * 0.5) * vr_hunits_per_meter * vr_hud_stereo * (getEye() == 1 ? 1.0 : -1.0);
+	float stereo_separation = (vr_ipd * 0.5) * vr_hunits_per_meter() * vr_hud_stereo * (getEye() == 1 ? 1.0 : -1.0);
 	new_projection.translate(stereo_separation, 0, 0);
 
 	// doom_units from meters
 	new_projection.scale(
-			-vr_hunits_per_meter,
-			vr_hunits_per_meter,
-			-vr_hunits_per_meter);
+			-vr_hunits_per_meter(),
+			vr_hunits_per_meter(),
+			-vr_hunits_per_meter());
 
 	if (vr_hud_fixed_roll)
 	{
@@ -250,14 +265,14 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 	new_projection.loadIdentity();
 
 	float weapon_stereo_effect = 2.8f;
-	float stereo_separation = (vr_ipd * 0.5) * vr_hunits_per_meter * weapon_stereo_effect * (getEye() == 1 ? -1.0 : 1.0);
+	float stereo_separation = (vr_ipd * 0.5) * vr_hunits_per_meter() * weapon_stereo_effect * (getEye() == 1 ? -1.0 : 1.0);
 	new_projection.translate(stereo_separation, 0, 0);
 
 	// doom_units from meters
 	new_projection.scale(
-			-vr_hunits_per_meter,
-			vr_hunits_per_meter,
-			-vr_hunits_per_meter);
+			-vr_hunits_per_meter(),
+			vr_hunits_per_meter(),
+			-vr_hunits_per_meter());
 
 	new_projection.rotate(-hmdorientation[ROLL], 0, 0, 1);
 
@@ -285,7 +300,7 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 
 float VREyeInfo::getShift() const
 {
-	return mShiftFactor * vr_ipd * vr_hunits_per_meter;
+	return mShiftFactor * vr_ipd * vr_hunits_per_meter();
 }
 
 int VREyeInfo::getEye() const
@@ -361,8 +376,8 @@ DVector3 VREyeInfo::GetViewShift(FRotator viewAngles) const
 
 		if (vr_positional_tracking)
 		{
-			eyeOffset[1] += -posforward * vr_hunits_per_meter;
-			eyeOffset[0] += posside * vr_hunits_per_meter;
+			eyeOffset[1] += -posforward * vr_hunits_per_meter();
+			eyeOffset[0] += posside * vr_hunits_per_meter();
 			eyeOffset[2] += getHmdAdjustedHeightInMapUnit();
 		}
 

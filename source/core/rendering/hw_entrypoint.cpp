@@ -56,7 +56,7 @@
 
 EXTERN_CVAR(Bool, cl_capfps)
 
-extern int resetGameYaw;
+extern int resyncVRYawWithGame;
 extern float gameYaw;
 
 PalEntry GlobalMapFog;
@@ -227,12 +227,12 @@ FRenderViewpoint SetupViewpoint(DCoreActor* cam, const DVector3& position, int s
 			gameYaw -= hmdYawDeltaDegrees;
 		}
 
-		if (gamestate == GS_LEVEL && resetGameYaw)
+		if (gamestate == GS_LEVEL && resyncVRYawWithGame)
 		{
-			if (resetGameYaw > 0)
+			if (resyncVRYawWithGame > 0)
 				gameYaw = (float) (-90.f + angles.Yaw.Degrees());
 
-			resetGameYaw--;
+			resyncVRYawWithGame--;
 		}
 	}
 
