@@ -3,19 +3,13 @@ LOCAL_PATH := $(call my-dir)/../source
 
 include $(CLEAR_VARS)
 
-
-# Uncomment for the correct headset - slight changes required in OpenXR implementation
-OPENXR_HMD = META_QUEST
-#OPENXR_HMD = PICO_XR
-
-
 LOCAL_SHORT_COMMANDS := true
 APP_SHORT_COMMANDS := true
 
 LOCAL_MODULE    := raze
 
-LOCAL_CFLAGS   := -D$(OPENXR_HMD) -funsigned-char  -DHAVE_GLES2 -DUSE_OPENGL -DNO_CLOCK_GETTIME -DUSE_GL_HW_BUFFERS -fvisibility=hidden -frtti  -D__MOBILE__  -DOPNMIDI_DISABLE_GX_EMULATOR -DGZDOOM  -DGZDOOM_GL3 -D__STDINT_LIMITS -DENGINE_NAME=\"gzdoom_dev\"
-LOCAL_CPPFLAGS := -D$(OPENXR_HMD) -include g_pch.h -DHAVE_FLUIDSYNTH -DHAVE_MPG123 -DHAVE_SNDFILE -std=c++17  -Wno-inconsistent-missing-override -Werror=format-security  -fexceptions -fpermissive -Dstricmp=strcasecmp -Dstrnicmp=strncasecmp -D__forceinline=inline -DNO_GTK -DNO_SSE
+LOCAL_CFLAGS   := -funsigned-char  -DHAVE_GLES2 -DUSE_OPENGL -DNO_CLOCK_GETTIME -DUSE_GL_HW_BUFFERS -fvisibility=hidden -frtti  -D__MOBILE__  -DOPNMIDI_DISABLE_GX_EMULATOR -DGZDOOM  -DGZDOOM_GL3 -D__STDINT_LIMITS -DENGINE_NAME=\"gzdoom_dev\"
+LOCAL_CPPFLAGS := -include g_pch.h -DHAVE_FLUIDSYNTH -DHAVE_MPG123 -DHAVE_SNDFILE -std=c++17  -Wno-inconsistent-missing-override -Werror=format-security  -fexceptions -fpermissive -Dstricmp=strcasecmp -Dstrnicmp=strncasecmp -D__forceinline=inline -DNO_GTK -DNO_SSE
 
 LOCAL_CFLAGS  += -DOPNMIDI_USE_LEGACY_EMULATOR
 LOCAL_CFLAGS  += -DADLMIDI_DISABLE_MUS_SUPPORT -DADLMIDI_DISABLE_XMI_SUPPORT -DADLMIDI_DISABLE_MIDI_SEQUENCER
@@ -23,9 +17,8 @@ LOCAL_CFLAGS  += -DOPNMIDI_DISABLE_MUS_SUPPORT -DOPNMIDI_DISABLE_XMI_SUPPORT -DO
 
 
 LOCAL_C_INCLUDES := \
-	$(TOP_DIR)/../../../../../3rdParty/khronos/openxr/OpenXR-SDK/include \
-	$(TOP_DIR)/../../../../../3rdParty/khronos/openxr/OpenXR-SDK/src/common \
-    $(TOP_DIR)/../../../../../OpenXR/Include \
+	${TOP_DIR}/OpenXR-SDK/include \
+	${TOP_DIR}/OpenXR-SDK/src/common \
     $(TOP_DIR)/ \  \
     $(SUPPORT_LIBS)/fluidsynth-lite/include \
     $(GZDOOM_TOP_PATH)/source/ \
