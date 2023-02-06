@@ -44,7 +44,7 @@ const char *GetVersionString();
 
 #define VERSIONSTR "1.7pre"
 
-#define RAZEXR_VERSIONSTR "RazeXR 0.1.2"
+#define RAZEXR_VERSIONSTR "RazeXR 0.1.3"
 
 // The version as seen in the Windows resource
 #define RC_FILEVERSION 1,6,9999,0

@@ -85,6 +85,7 @@ void GameInterface::GetInput(ControlInfo* const hidInput, double const scaleAdju
     if (!SyncInput() && gamestate == GS_LEVEL && !nFreeze)
     {
         pPlayer->Angles.RenderAngles.Yaw += DAngle::fromDeg(input.avel);
+        //For VR just set the pitch directly
         pPlayer->Angles.RenderAngles.Pitch = DAngle::fromDeg(input.horz);
 
         if (input.horz)

@@ -553,10 +553,6 @@ OptionMenu "VROptionsMenu" protected
 	StaticText 	""
 	Slider "Height Adjust",	"vr_height_adjust", 0.0, 1.0, 0.1
 	StaticText 	""
-	StaticText 	""
-	StaticText 	"Positional Tracking will exacerbate some rendering glitches"
-	StaticText 	"when crossing sector boundaries"
-	StaticText 	""
 	Option "Positional Tracking",	"vr_positional_tracking", "YesNo"
 
     StaticText ""

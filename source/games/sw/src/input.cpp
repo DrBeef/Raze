@@ -180,8 +180,10 @@ void GameInterface::GetInput(ControlInfo* const hidInput, double const scaleAdju
     {
         if ((pp->Flags2 & PF2_INPUT_CAN_AIM))
         {
-            pp->Angles.RenderAngles.Pitch += DAngle::fromDeg(input.horz);
+            //For VR just set the pitch directly
+            pp->Angles.RenderAngles.Pitch = DAngle::fromDeg(input.horz);
         }
+
 
         if ((pp->Flags2 & PF2_INPUT_CAN_TURN_GENERAL))
         {
