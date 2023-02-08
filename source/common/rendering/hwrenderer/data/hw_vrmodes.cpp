@@ -46,10 +46,13 @@
 extern vec3_t hmdPosition;
 extern vec3_t hmdOrigin;
 extern vec3_t hmdorientation;
+extern vec3_t weaponangles;
 
 float RazeXR_GetFOV();
 void VR_GetMove(float *joy_forward, float *joy_side, float *hmd_forward, float *hmd_side, float *up,
 				float *yaw, float *pitch, float *roll);
+
+void get_weapon_pos_and_angle(float &x, float &y, float &z, float &pitch, float &yaw);
 
 // Set up 3D-specific console variables:
 CVAR(Int, vr_mode, 15, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
@@ -78,6 +81,8 @@ CVAR(Bool, vr_secondary_button_mappings, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, vr_two_handed_weapons, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, vr_positional_tracking, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, vr_crouch_use_button, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Bool, vr_6dof_weapons, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Bool, vr_6dof_crosshair, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 CVAR(Float, vr_pickup_haptic_level, 0.2, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, vr_quake_haptic_level, 0.8, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -274,21 +279,37 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 			vr_hunits_per_meter(),
 			-vr_hunits_per_meter());
 
-	new_projection.rotate(-hmdorientation[ROLL], 0, 0, 1);
+	if (isDuke() && vr_6dof_weapons)
+	{
+		new_projection.rotate(-hmdorientation[PITCH], 1, 0, 0);
+		new_projection.rotate(-hmdorientation[ROLL], 0, 0, 1);
 
-	// hmd coordinates (meters) from ndc coordinates
-	// const float weapon_distance_meters = 0.55f;
-	// const float weapon_width_meters = 0.3f;
-	new_projection.translate(0.0, 0.0, 1.0);
+		float x, y, z, pitch, yaw;
+		get_weapon_pos_and_angle(x, y, z, pitch, yaw);
+		new_projection.translate(-x * weapon_stereo_effect, (z - hmdPosition[1]) * weapon_stereo_effect, -y * weapon_stereo_effect);
 
-	float weapon_scale = 0.7f;
-	new_projection.scale(
-			-weapon_scale,
-			weapon_scale,
-			-weapon_scale);
+		new_projection.rotate(weaponangles[YAW] - hmdorientation[YAW], 0, 1, 0);
+		new_projection.rotate(weaponangles[PITCH], 1, 0, 0);
 
-	// ndc coordinates from pixel coordinates
-	new_projection.translate(-1.0, 1.0, 0);
+
+		float weapon_scale = 0.5f;
+		new_projection.scale(-weapon_scale, weapon_scale, -weapon_scale);
+
+		// ndc coordinates from pixel coordinates
+		new_projection.translate(-1.5, 1.5, -0.5);
+	}
+	else
+	{
+		new_projection.rotate(-hmdorientation[ROLL], 0, 0, 1);
+
+		new_projection.translate(0.0, 0.0, 1.0);
+
+		float weapon_scale = 0.7f;
+		new_projection.scale(-weapon_scale, weapon_scale, -weapon_scale);
+
+		// ndc coordinates from pixel coordinates
+		new_projection.translate(-1.0, 1.0, 0);
+	}
 	new_projection.scale(2.0 / width, -2.0 / height, -1.0);
 
 	VSMatrix proj = GetProjection(RazeXR_GetFOV(), ratio, fovratio);

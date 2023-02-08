@@ -40,6 +40,10 @@ source as it is released.
 #include "dukeactor.h"
 
 void get_weapon_pos_and_angle(float &x, float &y, float &z, float &pitch, float &yaw);
+float vr_hunits_per_meter();
+
+EXTERN_CVAR(Bool, vr_6dof_weapons);
+EXTERN_CVAR(Bool, vr_6dof_crosshair);
 
 BEGIN_DUKE_NS 
 
@@ -944,28 +948,32 @@ void shoot_d_override(DDukeActor* actor, int atwith, PClass *cls)
 {
 	int l, j;
 	int sx, sy, sz, sa, p, vel, zvel, x, dal;
-	player_struct backup;
-	if (actor->isPlayer())
+
+	float px, py, pz, pitch, yaw;
+
+	DVector2 posXY;
+	if (actor->isPlayer() && vr_6dof_weapons)
 	{
-/*		p = actor->PlayerIndex();
-		{
-			float ax, y, z, pitch, yaw;
-			get_weapon_pos_and_angle(ax, y, z, pitch, yaw);
-			backup = ps[p];
-			ps[p].pos.X += (ax * 16.0f);
-			ps[p].pos.Y += (y * -16.0f);;
-			ps[p].pos.Z += (z * -256);
-			ps[p].angle.ang = degang(-yaw);
-			ps[p].horizon.horiz = pitchhoriz(-pitch);
-		}
-		*/
+		get_weapon_pos_and_angle(px, py, pz, pitch, yaw);
+
+		posXY = DVector2(px * vr_hunits_per_meter(), py * vr_hunits_per_meter()).Rotated(-DAngle90 + actor->spr.Angles.Yaw);
+		actor->spr.pos.X -= posXY.X;
+		actor->spr.pos.Y -= posXY.Y;
+		actor->spr.pos.Z -= (pz * vr_hunits_per_meter()) + actor->viewzoffset;
+		actor->spr.Angles.Yaw += DAngle::fromDeg(yaw);
+		actor->spr.Angles.Pitch -= DAngle::fromDeg(pitch);
 	}
+
 	shoot_d(actor, atwith, cls);
-/*	if (actor->isPlayer())
+
+	if (actor->isPlayer() && vr_6dof_weapons)
 	{
-		ps[p] = backup;
+		actor->spr.pos.X += posXY.X;
+		actor->spr.pos.Y += posXY.Y;
+		actor->spr.pos.Z += (pz * vr_hunits_per_meter()) + actor->viewzoffset;
+		actor->spr.Angles.Yaw -= DAngle::fromDeg(yaw);
+		actor->spr.Angles.Pitch += DAngle::fromDeg(pitch);
 	}
- */
 }
 
 void shoot_d(DDukeActor* actor, int atwith, PClass *cls)
@@ -2543,6 +2551,57 @@ static void processweapon(int snum, ESyncBits actions)
 	auto p = &ps[snum];
 	auto pact = p->GetActor();
 	int shrunk = (pact->spr.scale.Y < 0.5);
+
+	//Aiming decal?!
+	if (pact)
+	{
+		if (p->curr_weapon != KNEE_WEAPON)
+		{
+			if (pact->isPlayer() && vr_6dof_weapons && vr_6dof_crosshair)
+			{
+				float x, y, z, pitch, yaw;
+				get_weapon_pos_and_angle(x, y, z, pitch, yaw);
+
+				DAngle sang = pact->spr.Angles.Yaw + DAngle::fromDeg(yaw);
+
+				DVector3 spos = pact->spr.pos.plusZ(-(z * vr_hunits_per_meter()));
+				DVector2 posXY(x * vr_hunits_per_meter(), y * vr_hunits_per_meter());
+				posXY = posXY.Rotated(-DAngle90 + pact->spr.Angles.Yaw);
+				spos.X -= posXY.X;
+				spos.Y -= posXY.Y;
+
+				HitInfo hit{};
+
+				auto sectp = pact->sector();
+				double vel = 1024, zvel = 0;
+				setFreeAimVelocity(vel, zvel, p->Angles.getPitchWithView() - DAngle::fromDeg(pitch), 16.);
+
+				pact->spr.cstat &= ~CSTAT_SPRITE_BLOCK_ALL;
+				hitscan(spos, sectp, DVector3(sang.ToVector() * vel, zvel * 64), hit, CLIPMASK1);
+				pact->spr.cstat |= CSTAT_SPRITE_BLOCK_ALL;
+
+				if (hit.hitSector != nullptr)
+				{
+					double length = (hit.hitpos.XY() - pact->spr.pos.XY()).Length();
+
+					//Update the existing aiming sprites if there is one
+					DukeStatIterator it(STAT_AIM_SPRITE);
+					DDukeActor* spark = it.Next();
+					if (spark)
+					{
+						//update position
+						SetActorZ(spark, hit.hitpos);
+						spark->spr.scale = DVector2(0.1 + length/512.0, 0.1 + length/512.0);
+					}
+					else
+					{
+						CreateActor(hit.hitSector, hit.hitpos, DTILE_CROSSHAIR, -15, DVector2(0.1, 0.1), sang, 0., 0., pact, STAT_AIM_SPRITE);
+					}
+				}
+			}
+		}
+	}
+
 
 	if (isNamWW2GI() && (actions & SB_HOLSTER)) // 'Holster Weapon
 	{
