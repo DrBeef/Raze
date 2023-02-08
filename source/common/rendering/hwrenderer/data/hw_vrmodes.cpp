@@ -296,7 +296,7 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 		new_projection.scale(-weapon_scale, weapon_scale, -weapon_scale);
 
 		// ndc coordinates from pixel coordinates
-		new_projection.translate(-1.5, 1.5, -0.5);
+		new_projection.translate(-1.5, 1.5, -0.1);
 	}
 	else
 	{
