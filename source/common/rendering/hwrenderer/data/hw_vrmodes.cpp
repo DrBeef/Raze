@@ -52,7 +52,7 @@ float RazeXR_GetFOV();
 void VR_GetMove(float *joy_forward, float *joy_side, float *hmd_forward, float *hmd_side, float *up,
 				float *yaw, float *pitch, float *roll);
 
-void get_weapon_pos_and_angle(float &x, float &y, float &z, float &pitch, float &yaw);
+void get_weapon_pos_and_angle(float &x, float &y, float &z1, float &z2, float &pitch, float &yaw);
 
 // Set up 3D-specific console variables:
 CVAR(Int, vr_mode, 15, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
@@ -66,6 +66,9 @@ CVAR(Float, vr_ipd, 0.062f, CVAR_ARCHIVE|CVAR_GLOBALCONFIG) // METERS
 
 // distance between viewer and the display screen
 CVAR(Float, vr_screendist, 0.80f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // METERS
+
+//If the following is 0 then it uses the default for the game, this gives player the opportunity to override it themselves
+CVAR(Float, vr_units_per_meter, 0.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // METERS
 
 CVAR(Float, vr_height_adjust, 0.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // METERS
 CVAR(Int, vr_control_scheme, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
@@ -97,14 +100,55 @@ CVAR(Bool, vr_hud_fixed_roll, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 int playerHeight = 0;
 
 extern int g_gameType;
-#define  GAMEFLAG_DUKE	0x00000001
+
+enum
+{
+	GAMEFLAG_DUKE       = 0x00000001,
+	GAMEFLAG_NAM        = 0x00000002,
+	GAMEFLAG_NAPALM     = 0x00000004,
+	GAMEFLAG_WW2GI      = 0x00000008,
+	GAMEFLAG_ADDON      = 0x00000010,
+	GAMEFLAG_SHAREWARE  = 0x00000020,
+	GAMEFLAG_DUKEBETA   = 0x00000060, // includes 0x20 since it's a shareware beta
+	GAMEFLAG_PLUTOPAK	= 0x00000080,
+	GAMEFLAG_RR         = 0x00000100,
+	GAMEFLAG_RRRA       = 0x00000200,
+	GAMEFLAG_RRALL		= GAMEFLAG_RR | GAMEFLAG_RRRA,
+	GAMEFLAG_BLOOD      = 0x00000800,
+	GAMEFLAG_SW			= 0x00001000,
+	GAMEFLAG_POWERSLAVE	= 0x00002000,
+	GAMEFLAG_EXHUMED	= 0x00004000,
+	GAMEFLAG_PSEXHUMED  = GAMEFLAG_POWERSLAVE | GAMEFLAG_EXHUMED,	// the two games really are the same, except for the name and the publisher.
+	GAMEFLAG_WORLDTOUR	= 0x00008000,
+	GAMEFLAG_DUKEDC		= 0x00010000,
+	GAMEFLAG_DUKENW		= 0x00020000,
+	GAMEFLAG_DUKEVACA	= 0x00040000,
+	GAMEFLAG_BLOODCP	= 0x00080000,
+	GAMEFLAG_ROUTE66	= 0x00100000,
+	GAMEFLAG_SWWANTON	= 0x00200000,
+	GAMEFLAG_SWTWINDRAG	= 0x00400000,
+
+	GAMEFLAG_DUKECOMPAT = GAMEFLAG_DUKE | GAMEFLAG_NAM | GAMEFLAG_NAPALM | GAMEFLAG_WW2GI | GAMEFLAG_RRALL,
+	GAMEFLAGMASK        = 0x0000FFFF, // flags allowed from grpinfo
+
+	// We still need these for the parsers.
+	GAMEFLAG_FURY = 0,
+	GAMEFLAG_DEER = 0,
+
+};
+
 inline bool isDuke()
 {
-	return g_gameType & (GAMEFLAG_DUKE);
+	return g_gameType & (GAMEFLAG_DUKECOMPAT | GAMEFLAG_DUKEBETA | GAMEFLAG_WORLDTOUR | GAMEFLAG_DUKEDC | GAMEFLAG_DUKENW | GAMEFLAG_DUKEVACA);
 }
 
 float vr_hunits_per_meter()
 {
+	if (vr_units_per_meter != 0.0)
+	{
+		return vr_units_per_meter;
+	}
+
 	if (isDuke())
 	{
 		return 24.0f;
@@ -279,14 +323,14 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 			vr_hunits_per_meter(),
 			-vr_hunits_per_meter());
 
-	if (isDuke() && vr_6dof_weapons)
+	if (vr_6dof_weapons)
 	{
 		new_projection.rotate(-hmdorientation[PITCH], 1, 0, 0);
 		new_projection.rotate(-hmdorientation[ROLL], 0, 0, 1);
 
-		float x, y, z, pitch, yaw;
-		get_weapon_pos_and_angle(x, y, z, pitch, yaw);
-		new_projection.translate(-x * weapon_stereo_effect, (z - hmdPosition[1]) * weapon_stereo_effect, -y * weapon_stereo_effect);
+		float x, y, z1, z2, pitch, yaw;
+		get_weapon_pos_and_angle(x, y, z1, z2, pitch, yaw);
+		new_projection.translate(-x * weapon_stereo_effect, z2 * weapon_stereo_effect, -y * weapon_stereo_effect);
 
 		new_projection.rotate(weaponangles[YAW] - hmdorientation[YAW], 0, 1, 0);
 		new_projection.rotate(weaponangles[PITCH], 1, 0, 0);

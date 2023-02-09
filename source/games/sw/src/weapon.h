@@ -179,6 +179,13 @@ extern STATE s_NukeMushroom[];
 
 void WallBounce(DSWActor*, DAngle ang);
 
+
+#define CROSSHAIRTILE 2326
+STATE s_Crosshair[] =
+{
+        {CROSSHAIRTILE, 100, NullAnimator, &s_Crosshair[0]}
+};
+
 #define PUFF 1748
 #define CALTROPS 2218
 #define PHOSPHORUS 1397

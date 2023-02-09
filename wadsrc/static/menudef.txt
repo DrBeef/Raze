@@ -554,8 +554,8 @@ OptionMenu "VROptionsMenu" protected
 	Slider "Height Adjust",	"vr_height_adjust", 0.0, 1.0, 0.1
 	StaticText 	""
 	Option "Positional Tracking",	"vr_positional_tracking", "YesNo"
-	Option "6DoF Weapons (Duke Only)",	"vr_6dof_weapons", "YesNo"
-	Option "VR Crosshair (Duke Only)",	"vr_6dof_crosshair", "YesNo"
+	Option "6DoF Weapons",	"vr_6dof_weapons", "YesNo"
+	Option "VR Aim-Assist",	"vr_6dof_crosshair", "YesNo"
 
     StaticText ""
     StaticText "HUD"

@@ -56,6 +56,12 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 #include "gamestate.h"
 #include "vm.h"
 
+void get_weapon_pos_and_angle(float &x, float &y, float &z1, float &z2, float &pitch, float &yaw);
+float vr_hunits_per_meter();
+
+EXTERN_CVAR(Bool, vr_6dof_weapons);
+EXTERN_CVAR(Bool, vr_6dof_crosshair);
+
 BEGIN_SW_NS
 
 void pSpriteControl(PLAYER* pp);
@@ -6932,6 +6938,8 @@ void PauseMultiPlay(void)
 //
 //---------------------------------------------------------------------------
 
+extern STATE s_Splash[];
+
 void domovethings(void)
 {
     short i, pnum;
@@ -7023,7 +7031,72 @@ void domovethings(void)
 
         UpdatePlayerSprite(pp);
 
+
+        float px, py, pz1, pz2, pitch, yaw;
+
+        DVector2 posXY;
+        if (vr_6dof_weapons)
+        {
+            get_weapon_pos_and_angle(px, py, pz1, pz2, pitch, yaw);
+
+            posXY = DVector2(px * vr_hunits_per_meter(), py * vr_hunits_per_meter()).Rotated(-DAngle90 + pp->actor->spr.Angles.Yaw);
+            pp->actor->spr.pos.X -= posXY.X;
+            pp->actor->spr.pos.Y -= posXY.Y;
+            pp->actor->spr.pos.Z -= (pz1 * vr_hunits_per_meter());
+            pp->actor->spr.Angles.Yaw += DAngle::fromDeg(yaw);
+            pp->actor->spr.Angles.Pitch -= DAngle::fromDeg(pitch);
+
+            if (vr_6dof_crosshair)
+            {
+                HitInfo hit{};
+
+                double vel = 1024, zvel = 0;
+                setFreeAimVelocity(vel, zvel, pp->actor->spr.Angles.Pitch, 16.);
+
+                pp->actor->spr.cstat &= ~CSTAT_SPRITE_BLOCK_ALL;
+                hitscan(pp->actor->spr.pos, pp->actor->sector(), DVector3(pp->actor->spr.Angles.Yaw.ToVector() * vel, zvel * 64), hit, CLIPMASK1);
+                pp->actor->spr.cstat |= CSTAT_SPRITE_BLOCK_ALL;
+
+                if (hit.hitSector != nullptr)
+                {
+                    double length = (hit.hitpos.XY() - pp->actor->spr.pos.XY()).Length();
+
+                    //Update the existing aiming sprites if there is one
+                    SWStatIterator it(STAT_CROSSHAIR);
+                    DSWActor* crosshair = it.Next();
+                    if (crosshair)
+                    {
+                        //update position
+                        SetActorZ(crosshair, hit.hitpos);
+                    }
+                    else
+                    {
+                        crosshair = SpawnActor(STAT_CROSSHAIR, CROSSHAIRTILE, s_Crosshair, hit.hitSector, hit.hitpos, pp->actor->spr.Angles.Yaw, 0);
+                    }
+
+                    //Check we got the crosshair
+                    if (crosshair)
+                    {
+                        crosshair->spr.scale = DVector2(0.25 + length / 512.0, 0.25 + length / 512.0);
+                        crosshair->spr.shade = -40;
+                    }
+                }
+
+                //Now adjust Z for weapon origin
+                pp->actor->spr.pos.Z -= pp->actor->viewzoffset;
+            }
+        }
+
         pSpriteControl(pp);
+
+        if (vr_6dof_weapons)
+        {
+            pp->actor->spr.pos.X += posXY.X;
+            pp->actor->spr.pos.Y += posXY.Y;
+            pp->actor->spr.pos.Z += (pz1 * vr_hunits_per_meter()) + pp->actor->viewzoffset;
+            pp->actor->spr.Angles.Yaw -= DAngle::fromDeg(yaw);
+            pp->actor->spr.Angles.Pitch += DAngle::fromDeg(pitch);
+        }
 
         PlayerStateControl(pp->actor);
 

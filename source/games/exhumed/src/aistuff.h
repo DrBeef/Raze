@@ -243,6 +243,7 @@ enum kStatus
     kStatAnubisDrum,
     kStatExplodeTrigger = 141,
     kStatExplodeTarget = 152,
+	kStatCrosshair = 789,
     kStatBubbleMachine = 1022,
 
 };

@@ -97,6 +97,7 @@ enum {
 	kStatFlare = 14,
 	kStatDebris = 15,
 	kStatPathMarker = 16,
+	kStatCrosshair = 17,
 	kStatFree = 1024,
 };
 

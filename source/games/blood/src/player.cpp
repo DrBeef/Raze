@@ -32,6 +32,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "gamestate.h"
 #include "automap.h"
 
+void get_weapon_pos_and_angle(float &x, float &y, float &z1, float &z2, float &pitch, float &yaw);
+float vr_hunits_per_meter();
+
+EXTERN_CVAR(Bool, vr_6dof_weapons);
+EXTERN_CVAR(Bool, vr_6dof_crosshair);
+
 BEGIN_BLD_NS
 
 PLAYER gPlayer[kMaxPlayers];
@@ -1535,7 +1541,73 @@ void ProcessInput(PLAYER* pPlayer)
 		pPlayer->restTime = 0;
 	else if (pPlayer->restTime >= 0)
 		pPlayer->restTime += 4;
+
+
+	float px, py, pz1, pz2, pitch, yaw;
+
+	DVector2 posXY;
+	if (vr_6dof_weapons)
+	{
+		get_weapon_pos_and_angle(px, py, pz1, pz2, pitch, yaw);
+
+		posXY = DVector2(px * vr_hunits_per_meter(), py * vr_hunits_per_meter()).Rotated(-DAngle90 + actor->spr.Angles.Yaw);
+		actor->spr.pos.X -= posXY.X;
+		actor->spr.pos.Y -= posXY.Y;
+		actor->spr.pos.Z -= (pz2 * vr_hunits_per_meter()) - actor->viewzoffset;
+		actor->spr.Angles.Yaw += DAngle::fromDeg(yaw);
+		actor->spr.Angles.Pitch -= DAngle::fromDeg(pitch);
+
+		if (vr_6dof_crosshair)
+		{
+			HitInfo hit{};
+
+			double vel = 1024, zvel = 0;
+			setFreeAimVelocity(vel, zvel, actor->spr.Angles.Pitch, 16.);
+
+			actor->spr.cstat &= ~CSTAT_SPRITE_BLOCK_ALL;
+			hitscan(actor->spr.pos, actor->sector(),
+					DVector3(actor->spr.Angles.Yaw.ToVector() * vel, zvel * 64), hit, CLIPMASK1);
+			actor->spr.cstat |= CSTAT_SPRITE_BLOCK_ALL;
+
+			if (hit.hitSector != nullptr)
+			{
+				double length = (hit.hitpos.XY() - actor->spr.pos.XY()).Length();
+
+				//Update the existing aiming sprites if there is one
+				BloodStatIterator it(kStatCrosshair);
+				DBloodActor *crosshair = it.Next();
+				if (crosshair)
+				{
+					//update position
+					SetActorZ(crosshair, hit.hitpos);
+				}
+				else
+				{
+					crosshair = actSpawnSprite(hit.hitSector, hit.hitpos, kStatCrosshair, 1);
+				}
+
+				//Check we got the crosshair
+				if (crosshair)
+				{
+					crosshair->spr.picnum = kCrosshairTile;
+					crosshair->spr.scale = DVector2(0.4 + length / 512.0, 0.4 + length / 512.0);
+					crosshair->spr.shade = -40;
+				}
+			}
+		}
+	}
+
 	WeaponProcess(pPlayer);
+
+	if (vr_6dof_weapons)
+	{
+		actor->spr.pos.X += posXY.X;
+		actor->spr.pos.Y += posXY.Y;
+		actor->spr.pos.Z += (pz2 * vr_hunits_per_meter()) - actor->viewzoffset;
+		actor->spr.Angles.Yaw -= DAngle::fromDeg(yaw);
+		actor->spr.Angles.Pitch += DAngle::fromDeg(pitch);
+	}
+
 	if (actor->xspr.health == 0)
 	{
 		bool bSeqStat = playerSeqPlaying(pPlayer, 16);

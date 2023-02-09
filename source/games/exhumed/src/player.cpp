@@ -38,6 +38,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdio.h>
 #include <string.h>
 
+void get_weapon_pos_and_angle(float &x, float &y, float &z1, float &z2, float &pitch, float &yaw);
+float vr_hunits_per_meter();
+
+EXTERN_CVAR(Bool, vr_6dof_weapons);
+EXTERN_CVAR(Bool, vr_6dof_crosshair);
+
 BEGIN_PS_NS
 
 extern int nStatusSeqOffset;
@@ -2654,7 +2660,74 @@ sectdone:
         pDopple->spr.cstat = CSTAT_SPRITE_INVISIBLE;
     }
 
+    float px, py, pz1, pz2, pitch, yaw;
+
+    DVector2 posXY;
+    if (vr_6dof_weapons && nPlayer == 0)
+    {
+        get_weapon_pos_and_angle(px, py, pz1, pz2, pitch, yaw);
+
+        posXY = DVector2(px * vr_hunits_per_meter(), py * vr_hunits_per_meter()).Rotated(-DAngle90 + pPlayerActor->spr.Angles.Yaw);
+        pPlayerActor->spr.pos.X -= posXY.X;
+        pPlayerActor->spr.pos.Y -= posXY.Y;
+        pPlayerActor->spr.pos.Z -= (pz2 * vr_hunits_per_meter()) - pPlayerActor->viewzoffset;
+        pPlayerActor->spr.Angles.Yaw += DAngle::fromDeg(yaw);
+        pPlayerActor->spr.Angles.Pitch -= DAngle::fromDeg(pitch);
+
+        if (vr_6dof_crosshair)
+        {
+            HitInfo hit{};
+
+            double vel = 1024, zvel = 0;
+            setFreeAimVelocity(vel, zvel, pPlayerActor->spr.Angles.Pitch, 16.);
+
+            pPlayerActor->spr.cstat &= ~CSTAT_SPRITE_BLOCK_ALL;
+            hitscan(pPlayerActor->spr.pos, pPlayerActor->sector(),
+                    DVector3(pPlayerActor->spr.Angles.Yaw.ToVector() * vel, zvel * 64), hit, CLIPMASK1);
+            pPlayerActor->spr.cstat |= CSTAT_SPRITE_BLOCK_ALL;
+
+            if (hit.hitSector != nullptr)
+            {
+                double length = (hit.hitpos.XY() - pPlayerActor->spr.pos.XY()).Length();
+
+                //Update the existing aiming sprites if there is one
+                ExhumedStatIterator it(kStatCrosshair);
+                DExhumedActor *crosshair = it.Next();
+                if (crosshair)
+                {
+                    //update position
+                    SetActorZ(crosshair, hit.hitpos);
+                }
+                else
+                {
+                    crosshair = insertActor(hit.hitSector, kStatCrosshair);
+                    crosshair->spr.pos = hit.hitpos;
+                }
+
+                //Check we got the crosshair
+                if (crosshair)
+                {
+                    crosshair->spr.picnum = kCrosshairTile;
+                    crosshair->spr.scale = DVector2(0.4 + length / 512.0, 0.4 + length / 512.0);
+                    crosshair->spr.shade = -64;
+                }
+            }
+        }
+
+        pPlayerActor->spr.pos.Z += -pPlayerActor->viewzoffset;
+
+    }
+
     MoveWeapons(nPlayer);
+
+    if (vr_6dof_weapons)
+    {
+        pPlayerActor->spr.pos.X += posXY.X;
+        pPlayerActor->spr.pos.Y += posXY.Y;
+        pPlayerActor->spr.pos.Z += (pz2 * vr_hunits_per_meter());
+        pPlayerActor->spr.Angles.Yaw -= DAngle::fromDeg(yaw);
+        pPlayerActor->spr.Angles.Pitch += DAngle::fromDeg(pitch);
+    }
 }
 
 //---------------------------------------------------------------------------

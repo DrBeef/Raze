@@ -63,6 +63,8 @@ enum STAT_ENUMS
     STAT_ITEM=                  10,
     STAT_SKIP4_END =            10,
 
+    STAT_CROSSHAIR,
+
     STAT_FAF_COPY,
     STAT_MAX=20,  // everything below here can move
     STAT_PLAYER0,
