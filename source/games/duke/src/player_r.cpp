@@ -776,6 +776,7 @@ void shoot_r_override(DDukeActor* actor, int atwith, PClass *cls)
 	float px, py, pz1, pz2, pitch, yaw;
 
 	DVector2 posXY;
+	sectortype* sectp;
 	if (actor->isPlayer() && vr_6dof_weapons)
 	{
 		get_weapon_pos_and_angle(px, py, pz1, pz2, pitch, yaw);
@@ -786,6 +787,11 @@ void shoot_r_override(DDukeActor* actor, int atwith, PClass *cls)
 		actor->spr.pos.Z -= (pz1 * vr_hunits_per_meter()) + actor->viewzoffset;
 		actor->spr.Angles.Yaw += DAngle::fromDeg(yaw);
 		actor->spr.Angles.Pitch -= DAngle::fromDeg(pitch);
+
+		sectp = actor->sector();
+		sectortype* sectpnew;
+		updatesector(actor->spr.pos.XY(), &sectpnew);
+		actor->setsector(sectpnew);
 	}
 
 	shoot_r(actor, atwith, cls);
@@ -797,6 +803,7 @@ void shoot_r_override(DDukeActor* actor, int atwith, PClass *cls)
 		actor->spr.pos.Z += (pz1 * vr_hunits_per_meter()) + actor->viewzoffset;
 		actor->spr.Angles.Yaw -= DAngle::fromDeg(yaw);
 		actor->spr.Angles.Pitch += DAngle::fromDeg(pitch);
+		actor->setsector(sectp);
 	}
 }
 
@@ -3187,6 +3194,7 @@ static void processweapon(int snum, ESyncBits actions, sectortype* psectp)
 				HitInfo hit{};
 
 				auto sectp = pact->sector();
+				updatesector(spos.XY(), &sectp);
 				double vel = 1024, zvel = 0;
 				setFreeAimVelocity(vel, zvel, p->Angles.getPitchWithView() - DAngle::fromDeg(pitch), 16.);
 

@@ -1546,6 +1546,7 @@ void ProcessInput(PLAYER* pPlayer)
 	float px, py, pz1, pz2, pitch, yaw;
 
 	DVector2 posXY;
+	sectortype* sect;
 	if (vr_6dof_weapons)
 	{
 		get_weapon_pos_and_angle(px, py, pz1, pz2, pitch, yaw);
@@ -1556,6 +1557,11 @@ void ProcessInput(PLAYER* pPlayer)
 		actor->spr.pos.Z -= (pz2 * vr_hunits_per_meter()) - actor->viewzoffset;
 		actor->spr.Angles.Yaw += DAngle::fromDeg(yaw);
 		actor->spr.Angles.Pitch -= DAngle::fromDeg(pitch);
+
+		sect = actor->sector();
+		sectortype* newsect = actor->sector();
+		updatesector(actor->spr.pos.XY(), &newsect);
+		actor->setsector(newsect);
 
 		if (vr_6dof_crosshair)
 		{
@@ -1606,6 +1612,7 @@ void ProcessInput(PLAYER* pPlayer)
 		actor->spr.pos.Z += (pz2 * vr_hunits_per_meter()) - actor->viewzoffset;
 		actor->spr.Angles.Yaw -= DAngle::fromDeg(yaw);
 		actor->spr.Angles.Pitch += DAngle::fromDeg(pitch);
+		actor->setsector(sect);
 	}
 
 	if (actor->xspr.health == 0)

@@ -7035,6 +7035,7 @@ void domovethings(void)
         float px, py, pz1, pz2, pitch, yaw;
 
         DVector2 posXY;
+        sectortype* sect;
         if (vr_6dof_weapons)
         {
             get_weapon_pos_and_angle(px, py, pz1, pz2, pitch, yaw);
@@ -7045,6 +7046,11 @@ void domovethings(void)
             pp->actor->spr.pos.Z -= (pz1 * vr_hunits_per_meter());
             pp->actor->spr.Angles.Yaw += DAngle::fromDeg(yaw);
             pp->actor->spr.Angles.Pitch -= DAngle::fromDeg(pitch);
+
+            sect = pp->actor->sector();
+            sectortype* newsect = pp->actor->sector();
+            updatesector(pp->actor->spr.pos.XY(), &newsect);
+            pp->actor->setsector(newsect);
 
             if (vr_6dof_crosshair)
             {
@@ -7096,6 +7102,7 @@ void domovethings(void)
             pp->actor->spr.pos.Z += (pz1 * vr_hunits_per_meter()) + pp->actor->viewzoffset;
             pp->actor->spr.Angles.Yaw -= DAngle::fromDeg(yaw);
             pp->actor->spr.Angles.Pitch += DAngle::fromDeg(pitch);
+            pp->actor->setsector(sect);
         }
 
         PlayerStateControl(pp->actor);
