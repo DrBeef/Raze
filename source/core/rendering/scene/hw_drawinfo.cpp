@@ -138,7 +138,8 @@ void HWDrawInfo::StartScene(FRenderViewpoint& parentvp, HWViewpointUniforms* uni
 	}
 	else
 	{
-		VPUniforms.mProjectionMatrix.loadIdentity();
+		VPUniforms.mProjectionMatrixLeft.loadIdentity();
+		VPUniforms.mProjectionMatrixRight.loadIdentity();
 		VPUniforms.mViewMatrix.loadIdentity();
 		VPUniforms.mNormalViewMatrix.loadIdentity();
 		//VPUniforms.mViewHeight = viewheight;
@@ -732,10 +733,10 @@ void HWDrawInfo::DrawScene(int drawmode, bool portal)
 
 	RenderScene(RenderState);
 
-	if (applySSAO && RenderState.GetPassType() == GBUFFER_PASS)
+	if (false)//applySSAO && RenderState.GetPassType() == GBUFFER_PASS)
 	{
-		screen->AmbientOccludeScene(VPUniforms.mProjectionMatrix.get()[5]);
-		screen->mViewpoints->Bind(RenderState, vpIndex);
+		//screen->AmbientOccludeScene(VPUniforms.mProjectionMatrix[0].get()[5]);
+		//screen->mViewpoints->Bind(RenderState, vpIndex);
 	}
 
 	// Handle all portals after rendering the opaque objects but before

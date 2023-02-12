@@ -386,15 +386,15 @@ void FGLRenderer::PresentOpenXR()
 		return;
 	}
 
-	for (int eye = 0; eye < 2; ++eye)
+	//for (int eye = 0; eye < 2; ++eye)
 	{
-		TBXR_prepareEyeBuffer(eye);
+		TBXR_prepareEyeBuffer(0);
 
 		ClearBorders();
-		mBuffers->BindEyeTexture(eye, 0);
+		mBuffers->BindEyeTexture(0, 0);
 		DrawPresentTexture(screen->mOutputLetterbox, true);
 
-		TBXR_finishEyeBuffer(eye);
+		TBXR_finishEyeBuffer(0);
 	}
 
 	TBXR_submitFrame();
