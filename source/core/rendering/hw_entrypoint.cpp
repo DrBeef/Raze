@@ -169,8 +169,8 @@ void RenderViewpoint(FRenderViewpoint& mainvp, IntRect* bounds, float fov, float
 		di->Viewpoint.FieldOfView = FAngle::fromDeg(fov);	// Set the real FOV for the current scene (it's not necessarily the same as the global setting in r_viewpoint)
 
 		// Stereo mode specific perspective projection
-		di->VPUniforms.mProjectionMatrixLeft = vrmode->mEyes[0].GetProjection(fov, ratio, fovratio);
-		di->VPUniforms.mProjectionMatrixRight = vrmode->mEyes[1].GetProjection(fov, ratio, fovratio);
+		di->VPUniforms.mProjectionMatrix[0] = vrmode->mEyes[0].GetStereoProjection(fov, ratio, fovratio);
+		di->VPUniforms.mProjectionMatrix[1] = vrmode->mEyes[1].GetStereoProjection(fov, ratio, fovratio);
 
 
 		// Stereo mode specific viewpoint adjustment

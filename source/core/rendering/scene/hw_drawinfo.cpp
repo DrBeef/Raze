@@ -138,8 +138,8 @@ void HWDrawInfo::StartScene(FRenderViewpoint& parentvp, HWViewpointUniforms* uni
 	}
 	else
 	{
-		VPUniforms.mProjectionMatrixLeft.loadIdentity();
-		VPUniforms.mProjectionMatrixRight.loadIdentity();
+		VPUniforms.mProjectionMatrix[0].loadIdentity();
+		VPUniforms.mProjectionMatrix[1].loadIdentity();
 		VPUniforms.mViewMatrix.loadIdentity();
 		VPUniforms.mNormalViewMatrix.loadIdentity();
 		//VPUniforms.mViewHeight = viewheight;
@@ -731,19 +731,29 @@ void HWDrawInfo::DrawScene(int drawmode, bool portal)
 
 	if (!gl_no_skyclear) portalState.RenderFirstSkyPortal(recursion, this, RenderState);
 
+#ifndef __MOBILE__
+	//The original location of this call
 	RenderScene(RenderState);
 
-	if (false)//applySSAO && RenderState.GetPassType() == GBUFFER_PASS)
+	if (applySSAO && RenderState.GetPassType() == GBUFFER_PASS)
 	{
-		//screen->AmbientOccludeScene(VPUniforms.mProjectionMatrix[0].get()[5]);
-		//screen->mViewpoints->Bind(RenderState, vpIndex);
+		screen->AmbientOccludeScene(VPUniforms.mProjectionMatrix[0].get()[5]);
+		screen->mViewpoints->Bind(RenderState, vpIndex);
 	}
+#endif
 
 	// Handle all portals after rendering the opaque objects but before
 	// doing all translucent stuff
 	recursion++;
 	portalState.EndFrame(this, RenderState);
 	recursion--;
+
+#ifdef __MOBILE__
+	//For some reason, doing this here this fixes the issue with portals being drawn out of order sometimes when using
+	// Direct to eye buffer rendering for multiview
+	RenderScene(RenderState);
+#endif
+
 	RenderTranslucent(RenderState);
 }
 
