@@ -136,7 +136,12 @@ void RenderViewpoint(FRenderViewpoint& mainvp, IntRect* bounds, float fov, float
 	auto vrmode = VRMode::GetVRMode(mainview && toscreen);
 	const int eyeCount = vrmode->mEyeCount;
 	screen->FirstEye();
+
+#ifndef __MOBILE__
 	hw_int_useindexedcolortextures = eyeCount > 1? false : *hw_useindexedcolortextures;
+#else
+	hw_int_useindexedcolortextures = false;
+#endif
 
 	for (int eye_ix = 0; eye_ix < eyeCount; ++eye_ix)
 	{

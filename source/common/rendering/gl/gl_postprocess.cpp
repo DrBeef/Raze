@@ -56,6 +56,11 @@ void FGLRenderer::RenderScreenQuad()
 
 void FGLRenderer::PostProcessScene(int fixedcm, float flash, const std::function<void()> &afterBloomDrawEndScene2D)
 {
+#ifdef __MOBILE__
+	if (afterBloomDrawEndScene2D) afterBloomDrawEndScene2D();
+	return;
+#endif
+
 	int sceneWidth = mBuffers->GetSceneWidth();
 	int sceneHeight = mBuffers->GetSceneHeight();
 
@@ -84,11 +89,15 @@ void FGLRenderer::AmbientOccludeScene(float m5)
 
 void FGLRenderer::BlurScene(float gameinfobluramount)
 {
+	if (gameinfobluramount == 0)
+		return;
+
 	int sceneWidth = mBuffers->GetSceneWidth();
 	int sceneHeight = mBuffers->GetSceneHeight();
 
 	GLPPRenderState renderstate(mBuffers);
 
+	screen->FirstEye();
 	auto vrmode = VRMode::GetVRMode(true);
 	int eyeCount = vrmode->mEyeCount;
 	for (int i = 0; i < eyeCount; ++i)
@@ -118,6 +127,7 @@ void FGLRenderer::Flush()
 	}
 	else
 	{
+		screen->FirstEye();
 		// Render 2D to eye textures
 		int eyeCount = vrmode->mEyeCount;
 		for (int eye_ix = 0; eye_ix < eyeCount; ++eye_ix)

@@ -36,6 +36,8 @@ struct VREyeInfo
 private:
 	float getShift() const;
 	int getEye() const;
+
+    float getStereoSeparation(double stereoLevel) const;
 };
 
 struct VRMode

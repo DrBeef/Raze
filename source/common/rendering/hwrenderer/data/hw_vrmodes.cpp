@@ -255,7 +255,7 @@ VSMatrix VREyeInfo::GetHUDProjection(int width, int height) const
 	VSMatrix new_projection;
 	new_projection.loadIdentity();
 
-	float stereo_separation = (vr_ipd * 0.5) * vr_hunits_per_meter() * vr_hud_stereo * (getEye() == 1 ? 1.0 : -1.0);
+	float stereo_separation = getStereoSeparation(vr_hud_stereo);
 	new_projection.translate(stereo_separation, 0, 0);
 
 	// doom_units from meters
@@ -296,6 +296,12 @@ VSMatrix VREyeInfo::GetHUDProjection(int width, int height) const
 	return new_projection;
 }
 
+float VREyeInfo::getStereoSeparation(double stereoLevel) const
+{
+	float stereo_separation = (vr_ipd * 0.5) * vr_hunits_per_meter() * stereoLevel * (getEye() == 1 ? -1.0 : 1.0);
+	return stereo_separation;
+}
+
 VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 {
 	// now render the main view
@@ -314,8 +320,7 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 	new_projection.loadIdentity();
 
 	float weapon_stereo_effect = 2.8f;
-	float stereo_separation = (vr_ipd * 0.5) * vr_hunits_per_meter() * weapon_stereo_effect * (getEye() == 1 ? -1.0 : 1.0);
-	new_projection.translate(stereo_separation, 0, 0);
+	new_projection.translate(getStereoSeparation(weapon_stereo_effect), 0, 0);
 
 	// doom_units from meters
 	new_projection.scale(
