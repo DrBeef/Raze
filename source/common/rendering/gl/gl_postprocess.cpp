@@ -121,11 +121,12 @@ void FGLRenderer::ClearTonemapPalette()
 void FGLRenderer::Flush()
 {
 	auto vrmode = VRMode::GetVRMode(true);
-	if (vrmode->mEyeCount == 1)
+/*	if (vrmode->mEyeCount == 1)
 	{
 		CopyToBackbuffer(nullptr, true);
 	}
 	else
+ */
 	{
 		screen->FirstEye();
 		// Render 2D to eye textures
