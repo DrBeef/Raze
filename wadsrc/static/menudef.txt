@@ -555,7 +555,7 @@ OptionMenu "VROptionsMenu" protected
 	StaticText 	""
 	Option "Positional Tracking",	"vr_positional_tracking", "YesNo"
 	Option "6DoF Weapons",	"vr_6dof_weapons", "YesNo"
-	Option "VR Aim-Assist",	"vr_6dof_crosshair", "YesNo"
+	Option "VR Crosshair",	"vr_6dof_crosshair", "YesNo"
 
     StaticText ""
     StaticText "HUD"

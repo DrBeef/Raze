@@ -2664,6 +2664,7 @@ sectdone:
 
     DVector2 posXY;
     sectortype* sect;
+    bool crosshairActive = false;
     if (vr_6dof_weapons && nPlayer == 0)
     {
         get_weapon_pos_and_angle(px, py, pz1, pz2, pitch, yaw);
@@ -2694,6 +2695,7 @@ sectdone:
 
             if (hit.hitSector != nullptr)
             {
+                crosshairActive = true;
                 double length = (hit.hitpos.XY() - pPlayerActor->spr.pos.XY()).Length();
 
                 //Update the existing aiming sprites if there is one
@@ -2721,7 +2723,16 @@ sectdone:
         }
 
         pPlayerActor->spr.pos.Z += -pPlayerActor->viewzoffset;
+    }
 
+    if (!crosshairActive)
+    {
+        ExhumedStatIterator it(kStatCrosshair);
+        DExhumedActor *crosshair = it.Next();
+        if (crosshair)
+        {
+            crosshair->spr.scale = DVector2(0, 0);
+        }
     }
 
     MoveWeapons(nPlayer);

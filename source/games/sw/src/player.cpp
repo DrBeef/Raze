@@ -7036,6 +7036,7 @@ void domovethings(void)
 
         DVector2 posXY;
         sectortype* sect;
+        bool crosshairActive = false;
         if (vr_6dof_weapons)
         {
             get_weapon_pos_and_angle(px, py, pz1, pz2, pitch, yaw);
@@ -7065,6 +7066,7 @@ void domovethings(void)
 
                 if (hit.hitSector != nullptr)
                 {
+                    crosshairActive = true;
                     double length = (hit.hitpos.XY() - pp->actor->spr.pos.XY()).Length();
 
                     //Update the existing aiming sprites if there is one
@@ -7090,6 +7092,16 @@ void domovethings(void)
 
                 //Now adjust Z for weapon origin
                 pp->actor->spr.pos.Z -= pp->actor->viewzoffset;
+            }
+        }
+
+        if (!crosshairActive)
+        {
+            SWStatIterator it(STAT_CROSSHAIR);
+            DSWActor* crosshair = it.Next();
+            if (crosshair)
+            {
+                crosshair->spr.scale = DVector2(0, 0);
             }
         }
 

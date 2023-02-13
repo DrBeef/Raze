@@ -133,7 +133,7 @@ void DrawRateStuff()
 
 		int textScale = active_con_scale(twod_blend);
 		int rate_x = (screen->GetWidth() / 2) / textScale - (NewConsoleFont->StringWidth(&fpsbuff[0]) / 2);
-		twod->AddColorOnlyQuad(rate_x * textScale, 0, screen->GetWidth(), NewConsoleFont->GetHeight() * textScale, MAKEARGB(255, 0, 0, 0));
+		//twod->AddColorOnlyQuad(rate_x * textScale, 0, screen->GetWidth(), NewConsoleFont->GetHeight() * textScale, MAKEARGB(255, 0, 0, 0));
 		DrawText(twod_blend, NewConsoleFont, CR_WHITE, rate_x, screen->GetHeight() / 2, (char*)&fpsbuff[0],
 			DTA_VirtualWidth, screen->GetWidth() / textScale,
 			DTA_VirtualHeight, screen->GetHeight() / textScale,

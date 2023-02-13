@@ -1547,6 +1547,7 @@ void ProcessInput(PLAYER* pPlayer)
 
 	DVector2 posXY;
 	sectortype* sect;
+	bool crosshairActive = false;
 	if (vr_6dof_weapons)
 	{
 		get_weapon_pos_and_angle(px, py, pz1, pz2, pitch, yaw);
@@ -1577,6 +1578,8 @@ void ProcessInput(PLAYER* pPlayer)
 
 			if (hit.hitSector != nullptr)
 			{
+				crosshairActive = true;
+
 				double length = (hit.hitpos.XY() - actor->spr.pos.XY()).Length();
 
 				//Update the existing aiming sprites if there is one
@@ -1600,6 +1603,16 @@ void ProcessInput(PLAYER* pPlayer)
 					crosshair->spr.shade = -40;
 				}
 			}
+		}
+	}
+
+	if (!crosshairActive)
+	{
+		BloodStatIterator it(kStatCrosshair);
+		DBloodActor *crosshair = it.Next();
+		if (crosshair)
+		{
+			crosshair->spr.scale = DVector2(0, 0);
 		}
 	}
 

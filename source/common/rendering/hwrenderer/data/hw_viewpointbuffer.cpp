@@ -98,7 +98,7 @@ void HWViewpointBuffer::Set2D(F2DDrawer *drawer, FRenderState &di, int width, in
 		matrices.mClipLine.X = -10000000.0f;
 		matrices.mShadowmapFilter = gl_shadowmap_filter;
 
-		if (isDrawingFullscreen && isIn2D) //fullscreen 2D
+		if (isDrawingFullscreen) //fullscreen 2D
 		{
 			matrices.mProjectionMatrix[0].ortho(0, (float) width, (float) height, 0, -1.0f, 1.0f);
 			matrices.mProjectionMatrix[1].ortho(0, (float) width, (float) height, 0, -1.0f, 1.0f);

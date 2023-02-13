@@ -342,6 +342,7 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 
 		new_projection.rotate(weaponangles[YAW] - hmdorientation[YAW], 0, 1, 0);
 		new_projection.rotate(weaponangles[PITCH], 1, 0, 0);
+		new_projection.rotate(weaponangles[ROLL], 0, 0, 1);
 
 
 		float weapon_scale = 0.6f;
