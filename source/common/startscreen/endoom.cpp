@@ -169,26 +169,6 @@ int RunEndoom()
 	S_StopMusic(true);
 	auto endoom = new FEndoomScreen(endoom_lump);
 	endoom->Render(true);
-
-/*	while(true)
-	{
-		I_GetEvent();
-		endoom->Update();
-		while (eventtail != eventhead)
-		{
-			event_t *ev = &events[eventtail];
-			eventtail = (eventtail + 1) & (MAXEVENTS - 1);
-
-			if (ev->type == EV_KeyDown || ev->type == EV_KeyUp)
-			{
-				return 0;
-			}
-			if (ev->type == EV_GUI_Event && (ev->subtype == EV_GUI_KeyDown || ev->subtype == EV_GUI_LButtonDown || ev->subtype == EV_GUI_RButtonDown || ev->subtype == EV_GUI_MButtonDown))
-			{
-				return 0;
-			}
-		}
-	}*/
 	return 0;
 }
 

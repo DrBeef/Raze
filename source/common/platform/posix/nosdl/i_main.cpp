@@ -184,8 +184,7 @@ int raze_main (int argc, char **argv)
 	const int result = GameMain();
 
 #ifdef __ANDROID__
-	usleep(500* 1000);
-	exit(0);
+	usleep(1000* 1000);
 #endif
 
 	return result;

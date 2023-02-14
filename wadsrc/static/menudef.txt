@@ -506,6 +506,9 @@ OptionMenu "OptionsMenu" protected
 	Submenu "$OS_TITLE", "os_Menu"
 	StaticText " "
 	Submenu "$MNU_ENGINECREDITS",		"EngineCredits"
+	StaticText " "
+	Submenu "Team Beef Gold-Tier Patrons",		"GoldTierCredits"
+	StaticText " "
 	SafeCommand "$OPTMNU_DEFAULTS",	"reset2defaults"
 	SafeCommand	"$OPTMNU_RESETTOSAVED",	"reset2saved"
 	//Command "$OPTMNU_CONSOLE",			"menuconsole"
@@ -2107,6 +2110,34 @@ OptionMenu "MultiOptionsMenu"
 	SafeCommand "$NETMNU_ACCEPT", "MultiAccept"
 }
 */
+
+OptionMenu "GoldTierCredits"
+{
+	title "$MNU_CREDITS"
+	StaticText ""
+	StaticText ""
+	StaticText ""
+	StaticText "Team Beef Gold Tier Patrons", 1
+	StaticText ""
+	StaticText "David Gohman               Adam                 Luc Lowndes          "
+	StaticText "Sign of the Beefcarver     Naughtynate350       Mike Gummelt         "
+	StaticText "CrashOrganism              Russel Jones         Joshua Vizanko       "
+	StaticText "GD Dragon                  Saeed Al-Ali         Gabe Miller          "
+	StaticText "Jojo Mojo                  Andrew Remsen        valedurandal         "
+	StaticText "Brian Sifrar               Dominik Studer       Tommy Green          "
+	StaticText "Cuttlersan                 Kalli Raya           Lunar Stain          "
+	StaticText "iS                         ken fountain         Ben Otter            "
+	StaticText "Emanuele Disco             CharlieSayNo         cranky_bum           "
+	StaticText "Jamie S                    EDavey               BMF                  "
+	StaticText "Jack Henaghan              Loot Tester          Charlie Bagwell      "
+	StaticText "Braxus                     Ryan Milke           Emile Tixeuil        "
+	StaticText "Rex                        Keith                Griffin Cole Edwards "
+	StaticText "Max                        Spellbound1998       mrpapa               "
+	StaticText "Albert Valiev              Duncan Mummery       Stephen Sayles       "
+	StaticText "Markus Dickmann            HUSSEIN MOSTAFA      Adam Davidek         "
+	StaticText "Jack Henaghan              Axis                 BayesianBroccoli     "
+	StaticText "Montain Gral               Markus Gunther                            "
+}
 
 OptionMenu "EngineCredits"
 {
