@@ -119,12 +119,11 @@ void HWViewpointBuffer::Set2D(F2DDrawer *drawer, FRenderState &di, int width, in
 		SetViewpoint(di, &matrices);
 		return;
 
-		for (int n = 0; n < mPipelineNbr; n++)
-		{
-			mBufferPipeline[n]->Map();
-			memcpy(mBufferPipeline[n]->Memory(), &matrices, sizeof(matrices));
-			mBufferPipeline[n]->Unmap();
-		}
+
+		CheckSize();
+		mBuffer->Map();
+		memcpy(((char*)mBuffer->Memory()) + mUploadIndex * mBlockAlign, &matrices, sizeof(matrices));
+		mBuffer->Unmap();
 
 		mLastMappedIndex = -1;
 	}
@@ -151,6 +150,8 @@ void HWViewpointBuffer::Clear()
 
 	if (needNewPipeline)
 	{
+		mLastMappedIndex = UINT_MAX;
+
 		mPipelinePos++;
 		mPipelinePos %= mPipelineNbr;
 	}
