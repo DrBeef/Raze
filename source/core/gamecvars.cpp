@@ -92,7 +92,7 @@ CVARD(Bool, cl_loadingscreens, true, CVAR_ARCHIVE|CVAR_GLOBALCONFIG, "enable/dis
 CVARD(Bool, cl_clampedpitch, true, CVAR_ARCHIVE, "clamp the view pitch to original ranges")
 
 
-CUSTOM_CVARD(Int, cl_autoaim, 1, CVAR_ARCHIVE|CVAR_USERINFO, "enable/disable weapon autoaim")
+CUSTOM_CVARD(Int, cl_autoaim, 0, CVAR_ARCHIVE|CVAR_USERINFO, "enable/disable weapon autoaim")
 {
 	int automodes = (g_gameType & (GAMEFLAG_DUKECOMPAT | GAMEFLAG_BLOOD | GAMEFLAG_SW)) ? 2 : 1;
 	if (self < 0 || self > automodes) self = 1;

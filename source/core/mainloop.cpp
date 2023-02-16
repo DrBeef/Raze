@@ -408,12 +408,15 @@ void DrawOverlays()
 //==========================================================================
 CVAR(String, drawtile, "", 0)	// debug stuff. Draws the tile with the given number on top of thze HUD
 
+void TBXR_FrameSetup();
 void Display()
 {
 	if (screen == nullptr || (!AppActive && (screen->IsFullscreen() || !vid_activeinbackground)))
 	{
 		return;
 	}
+
+	TBXR_FrameSetup();
 	
 	FTexture* wipestart = nullptr;
 	if (nextwipe != wipe_None)

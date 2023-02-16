@@ -85,15 +85,7 @@ void I_StartTic ()
 	I_GetEvent ();
 }
 
-void TBXR_FrameSetup();
-void TBXR_prepareEyeBuffer(int);
-bool TBXR_IsFrameSetup();
+
 void I_StartFrame ()
 {
-	if (TBXR_IsFrameSetup())
-	{
-		return;
-	}
-
-	TBXR_FrameSetup();
 }

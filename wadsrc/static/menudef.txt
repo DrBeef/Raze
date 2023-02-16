@@ -548,8 +548,8 @@ OptionMenu "VROptionsMenu" protected
 {
 	Title "VR Options"
 	StaticText 	""
-	//Option "Control Scheme",		"vr_control_scheme", "ControlScheme"
-	//Option "Switch Sticks",	"vr_switch_sticks", "YesNo"
+	Option "Control Scheme",		"vr_control_scheme", "ControlScheme"
+	Option "Switch Sticks",	"vr_switch_sticks", "YesNo"
 	StaticText 	""
 	Option "Turning Mode",	"vr_snapTurn", "TurningMode"
 	Option "Direction Mode",	"vr_move_use_offhand", "DirectionMode"
@@ -1744,9 +1744,9 @@ OptionMenu VideoModeMenu protected
 	Option "$VIDMNU_SCALEMODE",			"vid_scalemode", "ScaleModes"
 	Slider "$VIDMNU_SCALEFACTOR",		"vid_scalefactor", 0.25, 2.0, 0.25, 2
 
-	StaticText " "
-	Option "$DSPLYMNU_VSYNC",					"vid_vsync", "OnOff"
-	Option "$VIDMNU_MAXFPS",					"vid_maxfps", "MaxFps"
+//	StaticText " "
+//	Option "$DSPLYMNU_VSYNC",					"vid_vsync", "OnOff"
+//	Option "$VIDMNU_MAXFPS",					"vid_maxfps", "MaxFps"
 
 	StaticText ""
 	StaticText "$VIDMNU_CUSTOMRES"

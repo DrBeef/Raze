@@ -148,8 +148,6 @@ void RenderViewpoint(FRenderViewpoint& mainvp, IntRect* bounds, float fov, float
 		const auto& eye = vrmode->mEyes[eye_ix];
 		screen->SetViewportRects(bounds);
 
-		screen->RenderState()->SetEye(eye_ix);
-
 		if (mainview) // Bind the scene frame buffer and turn on draw buffers used by ssao
 		{
 			bool useSSAO = (gl_ssao != 0);
