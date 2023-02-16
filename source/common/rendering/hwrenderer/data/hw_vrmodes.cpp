@@ -172,6 +172,7 @@ float getHmdAdjustedHeightInMapUnit()
 #define isqrt2 0.7071067812f
 static VRMode vrmi_mono = { 1, 1.f, 1.f, 1.f,{ { 0.f, 1.f },{ 0.f, 0.f } } };
 static VRMode vrmi_stereo = { 2, 1.f, 1.f, 1.f,{ { -.5f, 1.f },{ .5f, 1.f } } };
+static VRMode vrmi_openxr = { 1, 1.f, 1.f, 1.f,{ { -.5f, 1.f },{ .5f, 1.f } } };
 static VRMode vrmi_sbsfull = { 2, .5f, 1.f, 2.f,{ { -.5f, .5f },{ .5f, .5f } } };
 static VRMode vrmi_sbssquished = { 2, .5f, 1.f, 1.f,{ { -.5f, 1.f },{ .5f, 1.f } } };
 static VRMode vrmi_lefteye = { 1, 1.f, 1.f, 1.f, { { -.5f, 1.f },{ 0.f, 0.f } } };
@@ -194,8 +195,10 @@ const VRMode *VRMode::GetVRMode(bool toscreen)
 	case VR_QUADSTEREO:
 	case VR_AMBERBLUE:
 	case VR_SIDEBYSIDELETTERBOX:
+        return &vrmi_stereo;
+
 	case VR_OPENXR:
-		return &vrmi_stereo;
+		return &vrmi_openxr;
 
 	case VR_SIDEBYSIDESQUISHED:
 	case VR_COLUMNINTERLEAVED:
@@ -255,7 +258,7 @@ VSMatrix VREyeInfo::GetHUDProjection(int width, int height) const
 	VSMatrix new_projection;
 	new_projection.loadIdentity();
 
-	float stereo_separation = (vr_ipd * 0.5) * vr_hunits_per_meter() * vr_hud_stereo * (getEye() == 1 ? 1.0 : -1.0);
+	float stereo_separation = getStereoSeparation(vr_hud_stereo);
 	new_projection.translate(stereo_separation, 0, 0);
 
 	// doom_units from meters
@@ -289,11 +292,17 @@ VSMatrix VREyeInfo::GetHUDProjection(int width, int height) const
 	new_projection.translate(-1.0, 1.0, 0);
 	new_projection.scale(2.0 / width, -2.0 / height, -1.0);
 
-	VSMatrix proj = GetProjection(RazeXR_GetFOV(), ratio, fovratio);
+	VSMatrix proj = GetCenterProjection(RazeXR_GetFOV(), ratio, fovratio);
 	proj.multMatrix(new_projection);
 	new_projection = proj;
 
 	return new_projection;
+}
+
+float VREyeInfo::getStereoSeparation(double stereoLevel) const
+{
+	float stereo_separation = (vr_ipd * 0.5) * vr_hunits_per_meter() * stereoLevel * (getEye() == 1 ? -1.0 : 1.0);
+	return stereo_separation;
 }
 
 VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
@@ -314,8 +323,7 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 	new_projection.loadIdentity();
 
 	float weapon_stereo_effect = 2.8f;
-	float stereo_separation = (vr_ipd * 0.5) * vr_hunits_per_meter() * weapon_stereo_effect * (getEye() == 1 ? -1.0 : 1.0);
-	new_projection.translate(stereo_separation, 0, 0);
+	new_projection.translate(getStereoSeparation(weapon_stereo_effect), 0, 0);
 
 	// doom_units from meters
 	new_projection.scale(
@@ -334,6 +342,7 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 
 		new_projection.rotate(weaponangles[YAW] - hmdorientation[YAW], 0, 1, 0);
 		new_projection.rotate(weaponangles[PITCH], 1, 0, 0);
+		new_projection.rotate(weaponangles[ROLL], 0, 0, 1);
 
 
 		float weapon_scale = 0.6f;
@@ -356,7 +365,7 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 	}
 	new_projection.scale(2.0 / width, -2.0 / height, -1.0);
 
-	VSMatrix proj = GetProjection(RazeXR_GetFOV(), ratio, fovratio);
+	VSMatrix proj = GetCenterProjection(RazeXR_GetFOV(), ratio, fovratio);
 	proj.multMatrix(new_projection);
 	new_projection = proj;
 
@@ -375,7 +384,14 @@ int VREyeInfo::getEye() const
 
 bool VR_GetVRProjection(int eye, float zNear, float zFar, float* projection);
 
-VSMatrix VREyeInfo::GetProjection(float fov, float aspectRatio, float fovRatio) const
+VSMatrix VREyeInfo::GetStereoProjection(float fov, float aspectRatio, float fovRatio) const
+{
+	VSMatrix projection = GetCenterProjection(fov, aspectRatio, fovRatio);
+	projection.translate(getStereoSeparation(1.0f), 0, 0);
+	return projection;
+}
+
+VSMatrix VREyeInfo::GetCenterProjection(float fov, float aspectRatio, float fovRatio) const
 {
 	VSMatrix result;
 
@@ -417,6 +433,7 @@ VSMatrix VREyeInfo::GetProjection(float fov, float aspectRatio, float fovRatio) 
 /* virtual */
 DVector3 VREyeInfo::GetViewShift(FRotator viewAngles) const
 {
+
 	if (mShiftFactor == 0)
 	{
 		// pass-through for Mono view
@@ -425,19 +442,18 @@ DVector3 VREyeInfo::GetViewShift(FRotator viewAngles) const
 	else
 	{
 		vec3_t angles;
-		VectorSet(angles, viewAngles.Pitch.Degrees(),  viewAngles.Yaw.Degrees(), viewAngles.Roll.Degrees());
+		VectorSet(angles, viewAngles.Pitch.Degrees(), viewAngles.Yaw.Degrees(),
+				  viewAngles.Roll.Degrees());
 
 		vec3_t v_forward, v_right, v_up;
 		AngleVectors(angles, v_forward, v_right, v_up);
 
-		vec3_t tmp;
-		VectorScale(v_right, getShift(), tmp);
-
-		float posforward=0;
-		float posside=0;
-		float dummy=0;
+		float posforward = 0;
+		float posside = 0;
+		float dummy = 0;
 		VR_GetMove(&dummy, &dummy, &posforward, &posside, &dummy, &dummy, &dummy, &dummy);
-		DVector3 eyeOffset(tmp[0], tmp[1], tmp[2]);
+		DVector3 eyeOffset;
+		eyeOffset.Zero();
 
 		if (vr_positional_tracking)
 		{

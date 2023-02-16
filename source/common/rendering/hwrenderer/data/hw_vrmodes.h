@@ -28,7 +28,8 @@ struct VREyeInfo
 	float mShiftFactor;
 	float mScaleFactor;
 
-	VSMatrix GetProjection(float fov, float aspectRatio, float fovRatio) const;
+	VSMatrix GetCenterProjection(float fov, float aspectRatio, float fovRatio) const;
+	VSMatrix GetStereoProjection(float fov, float aspectRatio, float fovRatio) const;
 	DVector3 GetViewShift(FRotator angles) const;
 	VSMatrix GetHUDProjection(int width, int height) const;
 	VSMatrix GetPlayerSpriteProjection(int width, int height) const;
@@ -36,6 +37,8 @@ struct VREyeInfo
 private:
 	float getShift() const;
 	int getEye() const;
+
+    float getStereoSeparation(double stereoLevel) const;
 };
 
 struct VRMode

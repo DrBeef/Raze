@@ -36,6 +36,8 @@
 EXTERN_CVAR(Int, gl_debug_level)
 CVAR(Int, gl_multisample, 1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG);
 
+void TBXR_prepareEyeBuffer(int eye );
+
 namespace OpenGLRenderer
 {
 
@@ -672,7 +674,9 @@ void FGLRenderBuffers::CreateShadowMap()
 
 void FGLRenderBuffers::BindSceneFB(bool sceneData)
 {
+#ifndef __MOBILE__
 	glBindFramebuffer(GL_FRAMEBUFFER, sceneData ? mSceneDataFB.handle : mSceneFB.handle);
+#endif
 }
 
 //==========================================================================
@@ -754,7 +758,9 @@ void FGLRenderBuffers::BindCurrentTexture(int index, int filter, int wrap)
 
 void FGLRenderBuffers::BindCurrentFB()
 {
+#ifndef __MOBILE__
 	mPipelineFB[mCurrentPipelineTexture].Bind();
+#endif
 }
 
 //==========================================================================
@@ -765,8 +771,10 @@ void FGLRenderBuffers::BindCurrentFB()
 
 void FGLRenderBuffers::BindNextFB()
 {
+#ifndef __MOBILE__
 	int out = (mCurrentPipelineTexture + 1) % NumPipelineTextures;
 	mPipelineFB[out].Bind();
+#endif
 }
 
 //==========================================================================
@@ -788,7 +796,9 @@ void FGLRenderBuffers::NextTexture()
 
 void FGLRenderBuffers::BindOutputFB()
 {
+#ifndef __MOBILE__
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#endif
 }
 
 //==========================================================================
@@ -999,12 +1009,17 @@ void GLPPRenderState::PopGroup()
 
 int FGLRenderBuffers::NextEye(int eyeCount)
 {
+#ifndef __MOBILE__
 	int nextEye = (mCurrentEye + 1) % eyeCount;
 	if (nextEye == mCurrentEye) return mCurrentEye;
 	BlitToEyeTexture(mCurrentEye);
 	mCurrentEye = nextEye;
 	BlitFromEyeTexture(mCurrentEye);
 	return mCurrentEye;
+#else
+	TBXR_prepareEyeBuffer(1);
+	return 1;
+#endif
 }
 
 }  // namespace OpenGLRenderer

@@ -75,6 +75,8 @@ extern bool vid_hdr_active;
 
 void DrawVersionString ();
 
+void TBXR_prepareEyeBuffer(int eye );
+
 namespace OpenGLRenderer
 {
 	FGLRenderer *GLRenderer;
@@ -450,6 +452,7 @@ void OpenGLFrameBuffer::AmbientOccludeScene(float m5)
 void OpenGLFrameBuffer::FirstEye()
 {
 	GLRenderer->mBuffers->CurrentEye() = 0;  // always begin at zero, in case eye count changed
+	TBXR_prepareEyeBuffer(0);
 }
 
 void OpenGLFrameBuffer::NextEye(int eyecount)
@@ -590,7 +593,9 @@ void OpenGLFrameBuffer::Draw2D()
 
 void OpenGLFrameBuffer::PostProcessScene(bool swscene, int fixedcm, float flash, const std::function<void()> &afterBloomDrawEndScene2D)
 {
+#ifndef __MOBILE__
 	if (!swscene) GLRenderer->mBuffers->BlitSceneToTexture(); // Copy the resulting scene to the current post process texture
+#endif
 	GLRenderer->PostProcessScene(fixedcm, flash, afterBloomDrawEndScene2D);
 }
 

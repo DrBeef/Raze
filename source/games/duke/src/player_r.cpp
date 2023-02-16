@@ -3174,11 +3174,12 @@ static void processweapon(int snum, ESyncBits actions, sectortype* psectp)
 	int shrunk = (pact->spr.scale.Y < 0.125);
 
 	//Aiming decal?!
-	if (pact)
+	if (pact && pact->isPlayer())
 	{
+		bool crosshairActive = false;
 		if (p->curr_weapon != KNEE_WEAPON)
 		{
-			if (pact->isPlayer() && vr_6dof_weapons && vr_6dof_crosshair)
+			if (vr_6dof_weapons && vr_6dof_crosshair)
 			{
 				float x, y, z1, z2, pitch, yaw;
 				get_weapon_pos_and_angle(x, y, z1, z2, pitch, yaw);
@@ -3204,6 +3205,7 @@ static void processweapon(int snum, ESyncBits actions, sectortype* psectp)
 
 				if (hit.hitSector != nullptr)
 				{
+					crosshairActive = true;
 					double length = (hit.hitpos.XY() - pact->spr.pos.XY()).Length();
 
 					//Update the existing aiming sprites if there is one
@@ -3220,6 +3222,17 @@ static void processweapon(int snum, ESyncBits actions, sectortype* psectp)
 						CreateActor(hit.hitSector, hit.hitpos, DTILE_CROSSHAIR, -15, DVector2(0.1, 0.1), sang, 0., 0., pact, STAT_AIM_SPRITE);
 					}
 				}
+			}
+		}
+
+		if (!crosshairActive)
+		{
+			//Update the existing aiming sprites if there is one
+			DukeStatIterator it(STAT_AIM_SPRITE);
+			DDukeActor* crosshair = it.Next();
+			if (crosshair)
+			{
+				crosshair->spr.scale = DVector2(0, 0);
 			}
 		}
 	}

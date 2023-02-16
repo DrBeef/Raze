@@ -226,7 +226,7 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 
 		// This must match the HWViewpointUniforms struct
 		layout(std140) uniform ViewpointUBO {
-			mat4 ProjectionMatrix;
+			mat4 ProjectionMatrix[NUM_VIEWS];
 			mat4 ViewMatrix;
 			mat4 NormalViewMatrix;
 
@@ -400,7 +400,7 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 	if (!lightbuffertype)
 	{
 #ifdef __MOBILE__
-		vp_comb.Format("#version 310 es\n#define NO_CLIPDISTANCE_SUPPORT\n#define NUM_UBO_LIGHTS %d\n#define NUM_UBO_BONES %d\n", lightbuffersize, screen->mBones->GetBlockSize());
+		vp_comb.Format("#version 310 es\n#define NO_CLIPDISTANCE_SUPPORT\n#define NUM_UBO_LIGHTS %d\n#define NUM_UBO_BONES %d\n#define NUM_VIEWS 2\n", lightbuffersize, screen->mBones->GetBlockSize());
 #else
 		vp_comb.Format("#version 330 core\n#define NUM_UBO_LIGHTS %d\n#define NUM_UBO_BONES %d\n", lightbuffersize, screen->mBones->GetBlockSize());
 #endif
@@ -421,6 +421,12 @@ bool FShader::Load(const char * name, const char * vert_prog_lump, const char * 
 	}
 
 	FString fp_comb = vp_comb;
+
+#ifdef __MOBILE__
+	vp_comb << "#extension GL_OVR_multiview2 : enable\n"
+			   "layout(num_views=NUM_VIEWS) in;\n";
+#endif
+
 	vp_comb << defines << i_data.GetChars();
 	fp_comb << "$placeholder$\n" << defines << i_data.GetChars();
 

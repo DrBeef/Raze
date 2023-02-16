@@ -51,6 +51,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "tilesetbuilder.h"
 #include "nnexts.h"
 
+extern int playerHeight; //Used to define player height for VR
+
 BEGIN_BLD_NS
 
 
@@ -603,6 +605,8 @@ void GameInterface::loadPalette(void)
 void GameInterface::app_init()
 {
 	mirrortile = tileGetTextureID(504);
+
+	playerHeight = 60;
 
 	GC::AddMarkerFunc(markgcroots);
 

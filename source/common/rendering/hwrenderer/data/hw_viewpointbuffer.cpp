@@ -98,19 +98,22 @@ void HWViewpointBuffer::Set2D(F2DDrawer *drawer, FRenderState &di, int width, in
 		matrices.mClipLine.X = -10000000.0f;
 		matrices.mShadowmapFilter = gl_shadowmap_filter;
 
-		if (isDrawingFullscreen && isIn2D) //fullscreen 2D
+		if (isDrawingFullscreen) //fullscreen 2D
 		{
-			matrices.mProjectionMatrix.ortho(0, (float) width, (float) height, 0, -1.0f, 1.0f);
+			matrices.mProjectionMatrix[0].ortho(0, (float) width, (float) height, 0, -1.0f, 1.0f);
+			matrices.mProjectionMatrix[1].ortho(0, (float) width, (float) height, 0, -1.0f, 1.0f);
 		}
 		else if (isIn2D) // HUD
 		{
 			auto vrmode = VRMode::GetVRMode(true);
-			matrices.mProjectionMatrix = vrmode->mEyes[di.GetEye()].GetHUDProjection(width, height);
+			matrices.mProjectionMatrix[0] = vrmode->mEyes[0].GetHUDProjection(width, height);
+			matrices.mProjectionMatrix[1] = vrmode->mEyes[1].GetHUDProjection(width, height);
 		}
 		else //Player Sprite
 		{
 			auto vrmode = VRMode::GetVRMode(true);
-			matrices.mProjectionMatrix = vrmode->mEyes[di.GetEye()].GetPlayerSpriteProjection(width, height);
+			matrices.mProjectionMatrix[0] = vrmode->mEyes[0].GetPlayerSpriteProjection(width, height);
+			matrices.mProjectionMatrix[1] = vrmode->mEyes[1].GetPlayerSpriteProjection(width, height);
 		}
 		matrices.CalcDependencies();
 		SetViewpoint(di, &matrices);

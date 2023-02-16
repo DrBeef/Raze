@@ -136,14 +136,17 @@ void RenderViewpoint(FRenderViewpoint& mainvp, IntRect* bounds, float fov, float
 	auto vrmode = VRMode::GetVRMode(mainview && toscreen);
 	const int eyeCount = vrmode->mEyeCount;
 	screen->FirstEye();
+
+#ifndef __MOBILE__
 	hw_int_useindexedcolortextures = eyeCount > 1? false : *hw_useindexedcolortextures;
+#else
+	hw_int_useindexedcolortextures = false;
+#endif
 
 	for (int eye_ix = 0; eye_ix < eyeCount; ++eye_ix)
 	{
 		const auto& eye = vrmode->mEyes[eye_ix];
 		screen->SetViewportRects(bounds);
-
-		screen->RenderState()->SetEye(eye_ix);
 
 		if (mainview) // Bind the scene frame buffer and turn on draw buffers used by ssao
 		{
@@ -164,7 +167,8 @@ void RenderViewpoint(FRenderViewpoint& mainvp, IntRect* bounds, float fov, float
 		di->Viewpoint.FieldOfView = FAngle::fromDeg(fov);	// Set the real FOV for the current scene (it's not necessarily the same as the global setting in r_viewpoint)
 
 		// Stereo mode specific perspective projection
-		di->VPUniforms.mProjectionMatrix = eye.GetProjection(fov, ratio, fovratio);
+		di->VPUniforms.mProjectionMatrix[0] = vrmode->mEyes[0].GetStereoProjection(fov, ratio, fovratio);
+		di->VPUniforms.mProjectionMatrix[1] = vrmode->mEyes[1].GetStereoProjection(fov, ratio, fovratio);
 
 
 		// Stereo mode specific viewpoint adjustment

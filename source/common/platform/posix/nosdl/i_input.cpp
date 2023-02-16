@@ -85,8 +85,7 @@ void I_StartTic ()
 	I_GetEvent ();
 }
 
-void TBXR_FrameSetup();
+
 void I_StartFrame ()
 {
-	TBXR_FrameSetup();
 }

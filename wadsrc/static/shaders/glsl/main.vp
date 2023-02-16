@@ -109,7 +109,7 @@ void main()
 		vTexCoord = TextureMatrix * vec4(parmTexCoord, 0.0, 1.0);
 	#endif
 
-	gl_Position = ProjectionMatrix * eyeCoordPos;
+	gl_Position = ProjectionMatrix[gl_ViewID_OVR] * eyeCoordPos;
 
 	#ifdef VULKAN_COORDINATE_SYSTEM
 	gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0;
