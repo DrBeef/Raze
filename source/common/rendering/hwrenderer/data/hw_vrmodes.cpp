@@ -52,7 +52,7 @@ float RazeXR_GetFOV();
 void VR_GetMove(float *joy_forward, float *joy_side, float *hmd_forward, float *hmd_side, float *up,
 				float *yaw, float *pitch, float *roll);
 
-void get_weapon_pos_and_angle(float &x, float &y, float &z1, float &z2, float &pitch, float &yaw);
+void get_weapon_pos_and_angle(float &x, float &y, float &z, float &pitch, float &yaw);
 
 // Set up 3D-specific console variables:
 CVAR(Int, vr_mode, 15, CVAR_GLOBALCONFIG|CVAR_ARCHIVE)
@@ -336,14 +336,13 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 		new_projection.rotate(-hmdorientation[PITCH], 1, 0, 0);
 		new_projection.rotate(-hmdorientation[ROLL], 0, 0, 1);
 
-		float x, y, z1, z2, pitch, yaw;
-		get_weapon_pos_and_angle(x, y, z1, z2, pitch, yaw);
-		new_projection.translate(-x * weapon_stereo_effect, z2 * weapon_stereo_effect, -y * weapon_stereo_effect);
+		float x, y, z, pitch, yaw;
+		get_weapon_pos_and_angle(x, y, z, pitch, yaw);
+		new_projection.translate(-x * weapon_stereo_effect, (z-hmdPosition[1]) * weapon_stereo_effect, -y * weapon_stereo_effect);
 
 		new_projection.rotate(weaponangles[YAW] - hmdorientation[YAW], 0, 1, 0);
 		new_projection.rotate(weaponangles[PITCH], 1, 0, 0);
 		new_projection.rotate(weaponangles[ROLL], 0, 0, 1);
-
 
 		float weapon_scale = 0.6f;
 		new_projection.scale(-weapon_scale, weapon_scale, -weapon_scale);

@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "gamestate.h"
 #include "automap.h"
 
-void get_weapon_pos_and_angle(float &x, float &y, float &z1, float &z2, float &pitch, float &yaw);
+void get_weapon_pos_and_angle(float &x, float &y, float &z, float &pitch, float &yaw);
 float vr_hunits_per_meter();
 
 EXTERN_CVAR(Bool, vr_6dof_weapons);
@@ -1543,21 +1543,31 @@ void ProcessInput(PLAYER* pPlayer)
 		pPlayer->restTime += 4;
 
 
-	float px, py, pz1, pz2, pitch, yaw;
+	float px, py, pz, pitch, yaw;
+	double slope = pPlayer->slope;
+	double zWeapon = pPlayer->zWeapon;
 
 	DVector2 posXY;
 	sectortype* sect;
 	bool crosshairActive = false;
 	if (vr_6dof_weapons)
 	{
-		get_weapon_pos_and_angle(px, py, pz1, pz2, pitch, yaw);
+		get_weapon_pos_and_angle(px, py, pz, pitch, yaw);
 
+		//Position for crosshair calculation
+		DVector3 spos = actor->spr.pos.plusZ(-(pz * vr_hunits_per_meter()) - actor->viewzoffset);
 		posXY = DVector2(px * vr_hunits_per_meter(), py * vr_hunits_per_meter()).Rotated(-DAngle90 + actor->spr.Angles.Yaw);
+		spos.X -= posXY.X;
+		spos.Y -= posXY.Y;
+
+		//Update player angles and position for shooting
 		actor->spr.pos.X -= posXY.X;
 		actor->spr.pos.Y -= posXY.Y;
-		actor->spr.pos.Z -= (pz2 * vr_hunits_per_meter()) - actor->viewzoffset;
+		actor->spr.pos.Z -= (pz * vr_hunits_per_meter()) + actor->viewzoffset;
+		pPlayer->zWeapon = actor->spr.pos.Z;
 		actor->spr.Angles.Yaw += DAngle::fromDeg(yaw);
 		actor->spr.Angles.Pitch -= DAngle::fromDeg(pitch);
+		pPlayer->slope = actor->spr.Angles.Pitch.Tan();
 
 		sect = actor->sector();
 		sectortype* newsect = actor->sector();
@@ -1572,7 +1582,7 @@ void ProcessInput(PLAYER* pPlayer)
 			setFreeAimVelocity(vel, zvel, actor->spr.Angles.Pitch, 16.);
 
 			actor->spr.cstat &= ~CSTAT_SPRITE_BLOCK_ALL;
-			hitscan(actor->spr.pos, actor->sector(),
+			hitscan(spos, actor->sector(),
 					DVector3(actor->spr.Angles.Yaw.ToVector() * vel, zvel * 64), hit, CLIPMASK1);
 			actor->spr.cstat |= CSTAT_SPRITE_BLOCK_ALL;
 
@@ -1622,9 +1632,11 @@ void ProcessInput(PLAYER* pPlayer)
 	{
 		actor->spr.pos.X += posXY.X;
 		actor->spr.pos.Y += posXY.Y;
-		actor->spr.pos.Z += (pz2 * vr_hunits_per_meter()) - actor->viewzoffset;
+		actor->spr.pos.Z += (pz * vr_hunits_per_meter()) + actor->viewzoffset;
 		actor->spr.Angles.Yaw -= DAngle::fromDeg(yaw);
 		actor->spr.Angles.Pitch += DAngle::fromDeg(pitch);
+		pPlayer->slope = actor->spr.Angles.Pitch.Tan();
+		pPlayer->zWeapon = zWeapon;
 		actor->setsector(sect);
 	}
 

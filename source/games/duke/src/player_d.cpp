@@ -39,7 +39,7 @@ source as it is released.
 #include "names_d.h"
 #include "dukeactor.h"
 
-void get_weapon_pos_and_angle(float &x, float &y, float &z1, float &z2, float &pitch, float &yaw);
+void get_weapon_pos_and_angle(float &x, float &y, float &z, float &pitch, float &yaw);
 float vr_hunits_per_meter();
 
 EXTERN_CVAR(Bool, vr_6dof_weapons);
@@ -949,23 +949,23 @@ void shoot_d_override(DDukeActor* actor, int atwith, PClass *cls)
 	int l, j;
 	int sx, sy, sz, sa, p, vel, zvel, x, dal;
 
-	float px, py, pz1, pz2, pitch, yaw;
+	float px, py, pz, pitch, yaw;
 
 	DVector2 posXY;
 	sectortype* sectp;
 	if (actor->isPlayer() && vr_6dof_weapons)
 	{
-		get_weapon_pos_and_angle(px, py, pz1, pz2, pitch, yaw);
+		get_weapon_pos_and_angle(px, py, pz, pitch, yaw);
 
 		posXY = DVector2(px * vr_hunits_per_meter(), py * vr_hunits_per_meter()).Rotated(-DAngle90 + actor->spr.Angles.Yaw);
 		actor->spr.pos.X -= posXY.X;
 		actor->spr.pos.Y -= posXY.Y;
-		actor->spr.pos.Z -= (pz1 * vr_hunits_per_meter()) + actor->viewzoffset;
+		actor->spr.pos.Z -= (pz * vr_hunits_per_meter()) + actor->viewzoffset;
 		actor->spr.Angles.Yaw += DAngle::fromDeg(yaw);
 		actor->spr.Angles.Pitch -= DAngle::fromDeg(pitch);
 
 		sectp = actor->sector();
-		sectortype* sectpnew;
+		sectortype* sectpnew = sectp;
 		updatesector(actor->spr.pos.XY(), &sectpnew);
 		actor->setsector(sectpnew);
 	}
@@ -976,7 +976,7 @@ void shoot_d_override(DDukeActor* actor, int atwith, PClass *cls)
 	{
 		actor->spr.pos.X += posXY.X;
 		actor->spr.pos.Y += posXY.Y;
-		actor->spr.pos.Z += (pz1 * vr_hunits_per_meter()) + actor->viewzoffset;
+		actor->spr.pos.Z += (pz * vr_hunits_per_meter()) + actor->viewzoffset;
 		actor->spr.Angles.Yaw -= DAngle::fromDeg(yaw);
 		actor->spr.Angles.Pitch += DAngle::fromDeg(pitch);
 		actor->setsector(sectp);
@@ -2567,12 +2567,12 @@ static void processweapon(int snum, ESyncBits actions)
 		{
 			if (vr_6dof_weapons && vr_6dof_crosshair)
 			{
-				float x, y, z1, z2, pitch, yaw;
-				get_weapon_pos_and_angle(x, y, z1, z2, pitch, yaw);
+				float x, y, z, pitch, yaw;
+				get_weapon_pos_and_angle(x, y, z, pitch, yaw);
 
 				DAngle sang = pact->spr.Angles.Yaw + DAngle::fromDeg(yaw);
 
-				DVector3 spos = pact->spr.pos.plusZ(-(z1 * vr_hunits_per_meter()));
+				DVector3 spos = pact->spr.pos.plusZ(-(z * vr_hunits_per_meter()));
 				DVector2 posXY(x * vr_hunits_per_meter(), y * vr_hunits_per_meter());
 				posXY = posXY.Rotated(-DAngle90 + pact->spr.Angles.Yaw);
 				spos.X -= posXY.X;
@@ -2584,7 +2584,7 @@ static void processweapon(int snum, ESyncBits actions)
 				updatesector(spos.XY(), &sectp);
 
 				double vel = 1024, zvel = 0;
-				setFreeAimVelocity(vel, zvel, p->Angles.getPitchWithView() - DAngle::fromDeg(pitch), 16.);
+				setFreeAimVelocity(vel, zvel, pact->spr.Angles.Pitch - DAngle::fromDeg(pitch), 16.);
 
 				pact->spr.cstat &= ~CSTAT_SPRITE_BLOCK_ALL;
 				hitscan(spos, sectp, DVector3(sang.ToVector() * vel, zvel * 64), hit, CLIPMASK1);

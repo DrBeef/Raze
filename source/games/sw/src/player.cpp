@@ -56,7 +56,7 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 #include "gamestate.h"
 #include "vm.h"
 
-void get_weapon_pos_and_angle(float &x, float &y, float &z1, float &z2, float &pitch, float &yaw);
+void get_weapon_pos_and_angle(float &x, float &y, float &z, float &pitch, float &yaw);
 float vr_hunits_per_meter();
 
 EXTERN_CVAR(Bool, vr_6dof_weapons);
@@ -7032,19 +7032,25 @@ void domovethings(void)
         UpdatePlayerSprite(pp);
 
 
-        float px, py, pz1, pz2, pitch, yaw;
+        float px, py, pz, pitch, yaw;
 
         DVector2 posXY;
         sectortype* sect;
         bool crosshairActive = false;
         if (vr_6dof_weapons)
         {
-            get_weapon_pos_and_angle(px, py, pz1, pz2, pitch, yaw);
+            get_weapon_pos_and_angle(px, py, pz, pitch, yaw);
 
+            //Position for crosshair calculation
+            DVector3 spos = pp->actor->spr.pos.plusZ(-(pz * vr_hunits_per_meter()));
             posXY = DVector2(px * vr_hunits_per_meter(), py * vr_hunits_per_meter()).Rotated(-DAngle90 + pp->actor->spr.Angles.Yaw);
+            spos.X -= posXY.X;
+            spos.Y -= posXY.Y;
+
+            //Update player angles and position for shooting
             pp->actor->spr.pos.X -= posXY.X;
             pp->actor->spr.pos.Y -= posXY.Y;
-            pp->actor->spr.pos.Z -= (pz1 * vr_hunits_per_meter());
+            pp->actor->spr.pos.Z -= (pz * vr_hunits_per_meter()) + pp->actor->viewzoffset;
             pp->actor->spr.Angles.Yaw += DAngle::fromDeg(yaw);
             pp->actor->spr.Angles.Pitch -= DAngle::fromDeg(pitch);
 
@@ -7061,7 +7067,7 @@ void domovethings(void)
                 setFreeAimVelocity(vel, zvel, pp->actor->spr.Angles.Pitch, 16.);
 
                 pp->actor->spr.cstat &= ~CSTAT_SPRITE_BLOCK_ALL;
-                hitscan(pp->actor->spr.pos, pp->actor->sector(), DVector3(pp->actor->spr.Angles.Yaw.ToVector() * vel, zvel * 64), hit, CLIPMASK1);
+                hitscan(spos, pp->actor->sector(), DVector3(pp->actor->spr.Angles.Yaw.ToVector() * vel, zvel * 64), hit, CLIPMASK1);
                 pp->actor->spr.cstat |= CSTAT_SPRITE_BLOCK_ALL;
 
                 if (hit.hitSector != nullptr)
@@ -7089,9 +7095,6 @@ void domovethings(void)
                         crosshair->spr.shade = -40;
                     }
                 }
-
-                //Now adjust Z for weapon origin
-                pp->actor->spr.pos.Z -= pp->actor->viewzoffset;
             }
         }
 
@@ -7111,7 +7114,7 @@ void domovethings(void)
         {
             pp->actor->spr.pos.X += posXY.X;
             pp->actor->spr.pos.Y += posXY.Y;
-            pp->actor->spr.pos.Z += (pz1 * vr_hunits_per_meter()) + pp->actor->viewzoffset;
+            pp->actor->spr.pos.Z += (pz * vr_hunits_per_meter()) + pp->actor->viewzoffset;
             pp->actor->spr.Angles.Yaw -= DAngle::fromDeg(yaw);
             pp->actor->spr.Angles.Pitch += DAngle::fromDeg(pitch);
             pp->actor->setsector(sect);

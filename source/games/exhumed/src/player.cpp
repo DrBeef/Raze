@@ -38,7 +38,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <stdio.h>
 #include <string.h>
 
-void get_weapon_pos_and_angle(float &x, float &y, float &z1, float &z2, float &pitch, float &yaw);
+void get_weapon_pos_and_angle(float &x, float &y, float &z, float &pitch, float &yaw);
 float vr_hunits_per_meter();
 
 EXTERN_CVAR(Bool, vr_6dof_weapons);
@@ -2660,19 +2660,25 @@ sectdone:
         pDopple->spr.cstat = CSTAT_SPRITE_INVISIBLE;
     }
 
-    float px, py, pz1, pz2, pitch, yaw;
+    float px, py, pz, pitch, yaw;
 
     DVector2 posXY;
     sectortype* sect;
     bool crosshairActive = false;
     if (vr_6dof_weapons && nPlayer == 0)
     {
-        get_weapon_pos_and_angle(px, py, pz1, pz2, pitch, yaw);
+        get_weapon_pos_and_angle(px, py, pz, pitch, yaw);
 
+        //Position for crosshair calculation
+        DVector3 spos = pPlayerActor->spr.pos.plusZ(-(pz * vr_hunits_per_meter()));
         posXY = DVector2(px * vr_hunits_per_meter(), py * vr_hunits_per_meter()).Rotated(-DAngle90 + pPlayerActor->spr.Angles.Yaw);
+        spos.X -= posXY.X;
+        spos.Y -= posXY.Y;
+
+        //Update player angles and position for shooting
         pPlayerActor->spr.pos.X -= posXY.X;
         pPlayerActor->spr.pos.Y -= posXY.Y;
-        pPlayerActor->spr.pos.Z -= (pz2 * vr_hunits_per_meter()) - pPlayerActor->viewzoffset;
+        pPlayerActor->spr.pos.Z -= (pz * vr_hunits_per_meter()) + pPlayerActor->viewzoffset;
         pPlayerActor->spr.Angles.Yaw += DAngle::fromDeg(yaw);
         pPlayerActor->spr.Angles.Pitch -= DAngle::fromDeg(pitch);
 
@@ -2689,7 +2695,7 @@ sectdone:
             setFreeAimVelocity(vel, zvel, pPlayerActor->spr.Angles.Pitch, 16.);
 
             pPlayerActor->spr.cstat &= ~CSTAT_SPRITE_BLOCK_ALL;
-            hitscan(pPlayerActor->spr.pos, pPlayerActor->sector(),
+            hitscan(spos, pPlayerActor->sector(),
                     DVector3(pPlayerActor->spr.Angles.Yaw.ToVector() * vel, zvel * 64), hit, CLIPMASK1);
             pPlayerActor->spr.cstat |= CSTAT_SPRITE_BLOCK_ALL;
 
@@ -2721,8 +2727,6 @@ sectdone:
                 }
             }
         }
-
-        pPlayerActor->spr.pos.Z += -pPlayerActor->viewzoffset;
     }
 
     if (!crosshairActive)
@@ -2741,7 +2745,7 @@ sectdone:
     {
         pPlayerActor->spr.pos.X += posXY.X;
         pPlayerActor->spr.pos.Y += posXY.Y;
-        pPlayerActor->spr.pos.Z += (pz2 * vr_hunits_per_meter());
+        pPlayerActor->spr.pos.Z += (pz * vr_hunits_per_meter()) + pPlayerActor->viewzoffset;
         pPlayerActor->spr.Angles.Yaw -= DAngle::fromDeg(yaw);
         pPlayerActor->spr.Angles.Pitch += DAngle::fromDeg(pitch);
         pPlayerActor->setsector(sect);
