@@ -74,7 +74,6 @@ CVAR(Float, vr_height_adjust, 0.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // METERS
 CVAR(Int, vr_control_scheme, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 CVAR(Bool, vr_move_use_offhand, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, vr_teleport, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Float, vr_weaponRotate, -30, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, vr_weaponScale, 1.02f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, vr_snapTurn, 45.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, vr_move_speed, 19, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -142,6 +141,11 @@ inline bool isDuke()
 	return g_gameType & (GAMEFLAG_DUKECOMPAT | GAMEFLAG_DUKEBETA | GAMEFLAG_WORLDTOUR | GAMEFLAG_DUKEDC | GAMEFLAG_DUKENW | GAMEFLAG_DUKEVACA);
 }
 
+inline bool isRR()
+{
+	return g_gameType & (GAMEFLAG_RRALL);
+}
+
 float vr_hunits_per_meter()
 {
 	if (vr_units_per_meter != 0.0)
@@ -149,7 +153,7 @@ float vr_hunits_per_meter()
 		return vr_units_per_meter;
 	}
 
-	if (isDuke())
+	if (isDuke() || isRR())
 	{
 		return 24.0f;
 	}

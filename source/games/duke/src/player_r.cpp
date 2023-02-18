@@ -3219,7 +3219,7 @@ static void processweapon(int snum, ESyncBits actions, sectortype* psectp)
 					}
 					else
 					{
-						CreateActor(hit.hitSector, hit.hitpos, DTILE_CROSSHAIR, -15, DVector2(0.1, 0.1), sang, 0., 0., pact, STAT_AIM_SPRITE);
+						CreateActor(hit.hitSector, hit.hitpos, RTILE_CROSSHAIR, -15, DVector2(0.1, 0.1), sang, 0., 0., pact, STAT_AIM_SPRITE);
 					}
 				}
 			}
