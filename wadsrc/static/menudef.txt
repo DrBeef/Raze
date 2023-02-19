@@ -540,8 +540,8 @@ OptionValue "DirectionMode"
 
 OptionValue "ControlScheme"
 {
-	10, "Right Handed"
-	0, "Left Handed"
+	0, "Right Handed"
+	10, "Left Handed"
 }
 
 OptionMenu "VROptionsMenu" protected

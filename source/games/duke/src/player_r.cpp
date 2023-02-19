@@ -231,9 +231,16 @@ static void shootweapon(DDukeActor* actor, int p, DVector3 pos, DAngle ang, int 
 		{
 			if (aimed == nullptr)
 			{
+				//I've adjusted the pistol to be a little less frustratingly random in VR
+#ifdef _NOTVR
 				ang += DAngle22_5 / 8 - randomAngle(22.5 / 4);
 				setFreeAimVelocity(vel, zvel, ps[p].Angles.getPitchWithView(), 16.);
 				zvel += 0.5 - krandf(1);
+#else
+				ang += DAngle22_5 / 32 - randomAngle(22.5 / 16);
+				setFreeAimVelocity(vel, zvel, ps[p].Angles.getPitchWithView(), 16.);
+				zvel += 0.125 - krandf(0.25);
+#endif
 			}
 		}
 		else
