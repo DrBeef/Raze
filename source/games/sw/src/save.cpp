@@ -1088,7 +1088,9 @@ void DSWActor::Serialize(FSerializer& arc)
 		("owner", ownerActor)
 		("texparam", texparam)
 		("texparam2", texparam2);
-	if (hasUser) arc("user", user); // only write if defined.
+
+	//Bit of a fiddle, but don't call this for the crosshair actor - seems to have solved the crashing
+	if (hasUser && (link_stat != STAT_CROSSHAIR)) arc("user", user); // only write if defined.
 }
 
 //---------------------------------------------------------------------------
