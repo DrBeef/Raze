@@ -34,6 +34,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "exhumedactor.h"
 #include "serialize_obj.h"
 #include "texturemanager.h"
+#include "player.h"
 
 BEGIN_PS_NS
 
@@ -211,7 +212,6 @@ struct GameInterface : public ::GameInterface
     const char* Name() override { return "Exhumed"; }
     void app_init() override;
     void SetupSpecialTextures(TilesetBuildInfo& info) override;
-    void clearlocalinputstate() override;
     void loadPalette() override;
 	bool GenerateSavePic() override;
     void MenuOpened() override;
@@ -225,7 +225,6 @@ struct GameInterface : public ::GameInterface
     void DrawBackground() override;
     void Render() override;
     //void DrawWeapons() override;
-    void GetInput(ControlInfo* const hidInput, double const scaleAdjust, InputPacket* packet = nullptr) override;
     void Startup() override;
     const char* GenericCheat(int player, int cheat) override;
 	void NewGame(MapRecord *map, int skill, bool) override;
@@ -234,11 +233,11 @@ struct GameInterface : public ::GameInterface
     bool DrawAutomapPlayer(const DVector2& mxy, const DVector2& cpos, const DAngle cang, const DVector2& xydim, const double czoom, double const interpfrac) override;
     DAngle playerPitchMin() override { return DAngle::fromDeg(49.5); }
     DAngle playerPitchMax() override { return DAngle::fromDeg(-49.5); }
-    void WarpToCoords(double x, double y, double z, DAngle ang) override;
+    DCoreActor* getConsoleActor() override { return PlayerList[nLocalPlayer].pActor; }
+    PlayerAngles* getConsoleAngles() override { return &PlayerList[nLocalPlayer].Angles; }
     void ToggleThirdPerson() override;
     void processSprites(tspriteArray& tsprites, const DVector3& view, DAngle viewang, double interpfrac) override;
     int GetCurrentSkill() override;
-    std::pair<DVector3, DAngle> GetCoordinates() override;
     void StartSoundEngine() override;
 
 	::GameStats getStats() override;

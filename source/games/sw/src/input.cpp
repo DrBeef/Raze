@@ -34,21 +34,11 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 
 BEGIN_SW_NS
 
-void DoPlayerTurnVehicle(PLAYER* pp, DAngle& plyaw, float avel, double z, double floor_dist);
-void DoPlayerTurnTurret(PLAYER* pp, DAngle& plyaw, float avel);
-
-static InputPacket loc;
-
 //---------------------------------------------------------------------------
 //
 // 
 //
 //---------------------------------------------------------------------------
-
-void InitNetVars(void)
-{
-    loc = {};
-}
 
 void InitTimingVars(void)
 {
@@ -80,13 +70,13 @@ enum
 //
 //---------------------------------------------------------------------------
 
-static void processWeapon(PLAYER* const pp)
+void processWeapon(PLAYER* const pp)
 {
     DSWActor* plActor = pp->actor;
     if (plActor == nullptr) return;
     int i;
 
-    if (loc.getNewWeapon() == WeaponSel_Next)
+    if (pp->input.getNewWeapon() == WeaponSel_Next)
     {
         int next_weapon = plActor->user.WeaponNum + 1;
         int start_weapon;
@@ -119,9 +109,9 @@ static void processWeapon(PLAYER* const pp)
             }
         }
 
-        loc.setNewWeapon(next_weapon + 1);
+        pp->input.setNewWeapon(next_weapon + 1);
     }
-    else if (loc.getNewWeapon() == WeaponSel_Prev)
+    else if (pp->input.getNewWeapon() == WeaponSel_Prev)
     {
         int prev_weapon = plActor->user.WeaponNum - 1;
         int start_weapon;
@@ -151,72 +141,13 @@ static void processWeapon(PLAYER* const pp)
                 }
             }
         }
-        loc.setNewWeapon(prev_weapon + 1);
+        pp->input.setNewWeapon(prev_weapon + 1);
     }
-    else if (loc.getNewWeapon() == WeaponSel_Alt)
+    else if (pp->input.getNewWeapon() == WeaponSel_Alt)
     {
         int which_weapon = plActor->user.WeaponNum + 1;
-        loc.setNewWeapon(which_weapon);
+        pp->input.setNewWeapon(which_weapon);
     }
-}
-
-void GameInterface::GetInput(ControlInfo* const hidInput, double const scaleAdjust, InputPacket *packet)
-{
-    PLAYER* pp = &Player[myconnectindex];
-
-    if (paused || M_Active() || pp->actor == nullptr)
-    {
-        loc = {};
-        return;
-    }
-
-    InputPacket input {};
-
-    ApplyGlobalInput(loc, hidInput);
-    processMovement(&input, &loc, hidInput, scaleAdjust, 0, !pp->sop, pp->sop_control ? 3. / 1.40625 : 1.);
-    processWeapon(pp);
-
-    if (!SyncInput())
-    {
-        if ((pp->Flags2 & PF2_INPUT_CAN_AIM))
-        {
-            //For VR just set the pitch directly
-            pp->Angles.RenderAngles.Pitch = DAngle::fromDeg(input.horz);
-        }
-
-
-        if ((pp->Flags2 & PF2_INPUT_CAN_TURN_GENERAL))
-        {
-            pp->Angles.RenderAngles.Yaw += DAngle::fromDeg(input.avel);
-        }
-
-        if ((pp->Flags2 & PF2_INPUT_CAN_TURN_VEHICLE))
-        {
-            DoPlayerTurnVehicle(pp, pp->Angles.RenderAngles.Yaw, input.avel, pp->actor->getOffsetZ() + 10, abs(pp->actor->getOffsetZ() + 10 - pp->sop->floor_loz));
-        }
-
-        if ((pp->Flags2 & PF2_INPUT_CAN_TURN_TURRET))
-        {
-            DoPlayerTurnTurret(pp, pp->Angles.RenderAngles.Yaw, input.avel);
-        }
-    }
-
-    if (packet)
-    {
-        *packet = loc;
-        loc = {};
-    }
-}
-
-//---------------------------------------------------------------------------
-//
-// This is called from InputState::ClearAllInput and resets all static state being used here.
-//
-//---------------------------------------------------------------------------
-
-void GameInterface::clearlocalinputstate()
-{
-    loc = {};
 }
 
 END_SW_NS

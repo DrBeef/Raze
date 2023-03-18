@@ -54,29 +54,6 @@ BEGIN_SW_NS
 //
 //---------------------------------------------------------------------------
 
-void GameInterface::WarpToCoords(double x, double y, double z, DAngle ang)
-{
-    auto pp = &Player[myconnectindex];
-    auto ppActor = pp->actor;
-
-    if (!ppActor) return;
-
-    ppActor->spr.pos = DVector3(x,y,z);
-
-    if (ang != DAngle::fromDeg(INT_MIN))
-    {
-		Player->actor->spr.Angles.Yaw = ang;
-    }
-
-    ppActor->backuploc();
-}
-
-//---------------------------------------------------------------------------
-//
-//
-//
-//---------------------------------------------------------------------------
-
 static int osdcmd_mirror(CCmdFuncPtr parm)
 {
     char base[80];

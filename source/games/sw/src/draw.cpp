@@ -312,10 +312,13 @@ void DoShadows(tspriteArray& tsprites, tspritetype* tsp, double viewz)
 		scale = tsp->scale;
     }
 
-    loz = DoShadowFindGroundPoint(tsp);
-    if (ownerActor->user.lowActor && (ownerActor->user.lowActor->spr.cstat & (CSTAT_SPRITE_ALIGNMENT_WALL | CSTAT_SPRITE_ALIGNMENT_FLOOR)))
+    loz = ownerActor->user.loz;
+    if (ownerActor->user.lowActor)
     {
-        loz = ownerActor->user.loz;
+        if (!(ownerActor->user.lowActor->spr.cstat & (CSTAT_SPRITE_ALIGNMENT_WALL | CSTAT_SPRITE_ALIGNMENT_FLOOR)))
+        {
+            loz = DoShadowFindGroundPoint(tsp);
+        }
     }
 
     // need to find the ground here
@@ -781,7 +784,7 @@ static void analyzesprites(tspriteArray& tsprites, const DVector3& viewpos, doub
                     if (pp->Flags & (PF_VIEW_FROM_OUTSIDE))
                         tsp->cstat |= (CSTAT_SPRITE_TRANSLUCENT);
 
-                    auto pos = pp->si.plusZ(tsp->pos.Z + pp->getViewHeightDiff());
+                    auto pos = pp->si.plusZ(tsp->pos.Z);
 
                     if (pp->Flags & (PF_CLIMBING))
                     {
@@ -800,7 +803,7 @@ static void analyzesprites(tspriteArray& tsprites, const DVector3& viewpos, doub
                     }
 
 					tsp->pos = pos;
-                    tsp->Angles.Yaw = pp->siang;
+                    tsp->Angles.Yaw = pp->Angles.getCameraAngles().Yaw;
                     //continue;
                 }
                 else
@@ -956,19 +959,6 @@ void post_analyzesprites(tspriteArray& tsprites)
             }
         }
     }
-}
-
-//---------------------------------------------------------------------------
-//
-//
-//
-//---------------------------------------------------------------------------
-
-std::pair<DVector3, DAngle> GameInterface::GetCoordinates()
-{
-    auto ppActor = Player[myconnectindex].actor;
-    if (!ppActor) return std::make_pair(DVector3(DBL_MAX, 0, 0), nullAngle);
-    return std::make_pair(ppActor->spr.pos, ppActor->spr.Angles.Yaw);
 }
 
 //---------------------------------------------------------------------------
@@ -1239,10 +1229,11 @@ void drawscreen(PLAYER* pp, double interpfrac, bool sceneonly)
     }
 
     // update render angles.
-    pp->Angles.updateRenderAngles(interpfrac);
+    pp->Angles.updateCameraAngles(interpfrac);
 
     // Get initial player position, interpolating if required.
     DVector3 tpos = camerapp->actor->getRenderPos(interpfrac);
+    DVector2 ampos = tpos.XY();
     DRotator tangles = camerapp->Angles.getRenderAngles(interpfrac);
     sectortype* tsect = camerapp->cursector;
 
@@ -1260,7 +1251,6 @@ void drawscreen(PLAYER* pp, double interpfrac, bool sceneonly)
     }
 
     pp->si = tpos.plusZ(-pp->actor->getOffsetZ());
-    pp->siang = tangles.Yaw;
 
     QuakeViewChange(camerapp, tpos, tangles.Yaw);
     int vis = g_visibility;
@@ -1331,7 +1321,7 @@ void drawscreen(PLAYER* pp, double interpfrac, bool sceneonly)
                 }
             }
         }
-        DrawOverheadMap(tpos.XY(), tangles.Yaw, interpfrac);
+        DrawOverheadMap(ampos, tangles.Yaw, interpfrac);
     }
 
     SWSpriteIterator it;
@@ -1455,7 +1445,7 @@ bool GameInterface::DrawAutomapPlayer(const DVector2& mxy, const DVector2& cpos,
 
                 if (spnum >= 0)
                 {
-                    const auto daang = -(pp->Angles.RenderAngles.Yaw - cang).Normalized360().Degrees();
+                    const auto daang = -(pp->Angles.getCameraAngles().Yaw - cang).Normalized360().Degrees();
                     auto vect = OutAutomapVector(mxy - cpos, cangvect, czoom, xydim);
 
                     // This repeat scale is correct.

@@ -54,6 +54,30 @@ void InitAnims()
     nSavePointSeq = SeqOffsets[kSeqItems] + 12;
 }
 
+/*
+    Use when deleting an ignited actor to check if any actors reference it. 
+    Will remove the actor's anim loop flag and set the source (the ignited actor's) actor target to null.
+    FuncAnim() will then delete the actor on next call for this actor.
+
+    Without this, the actor will hold reference to an actor which will prevent the GC from deleting it properly.
+
+    Specifically needed for IgniteSprite() anims which can become orphaned from the source sprite (e.g a bullet)
+    when the bullet sprite is deleted.
+*/
+void UnlinkIgnitedAnim(DExhumedActor* pActor)
+{
+    ExhumedStatIterator it(kStatIgnited);
+    while (auto itActor = it.Next())
+    {
+        // .pTarget holds the actor pointer of the source 'actor that's on fire' actor
+        if (pActor == itActor->pTarget)
+        {
+            itActor->nAction &= ~kAnimLoop; // clear the animation loop flag
+            itActor->pTarget = nullptr; // set the actor target to null
+        }
+    }
+}
+
 void DestroyAnim(DExhumedActor* pActor)
 {
     if (pActor)

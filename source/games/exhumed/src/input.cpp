@@ -25,92 +25,16 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 BEGIN_PS_NS
 
-PlayerInput sPlayerInput[kMaxPlayers];
-
 //---------------------------------------------------------------------------
 //
 //
 //
 //---------------------------------------------------------------------------
-
-size_t MarkInput()
-{
-    for (auto& p : sPlayerInput)
-    {
-        GC::Mark(p.pTarget);
-    }
-    return kMaxPlayers;
-}
 
 void ClearSpaceBar(int nPlayer)
 {
-    sPlayerInput[nPlayer].actions &= SB_OPEN;
+    PlayerList[nPlayer].input.actions &= SB_OPEN;
     buttonMap.ClearButton(gamefunc_Open);
-}
-
-
-//---------------------------------------------------------------------------
-//
-//
-//
-//---------------------------------------------------------------------------
-
-void GameInterface::GetInput(ControlInfo* const hidInput, double const scaleAdjust, InputPacket* packet)
-{
-    if (paused || M_Active())
-    {
-        localInput = {};
-        return;
-    }
-
-    if (packet != nullptr)
-    {
-        localInput = {};
-        ApplyGlobalInput(localInput, hidInput);
-        if (PlayerList[nLocalPlayer].nHealth == 0) localInput.actions &= SB_OPEN;
-    }
-
-    Player* pPlayer = &PlayerList[nLocalPlayer];
-    InputPacket input {};
-
-    if (PlayerList[nLocalPlayer].nHealth != 0)
-    {
-        processMovement(&input, &localInput, hidInput, scaleAdjust);
-    }
-    else
-    {
-        sPlayerInput[nLocalPlayer].vel.Zero();
-    }
-
-    if (!SyncInput() && gamestate == GS_LEVEL && !nFreeze)
-    {
-        pPlayer->Angles.RenderAngles.Yaw += DAngle::fromDeg(input.avel);
-        //For VR just set the pitch directly
-        pPlayer->Angles.RenderAngles.Pitch = DAngle::fromDeg(input.horz);
-
-        if (input.horz)
-        {
-            pPlayer->bPlayerPan = pPlayer->bLockPan = true;
-        }
-
-        UpdatePlayerSpriteAngle(pPlayer);
-    }
-
-    if (packet)
-    {
-        *packet = localInput;
-    }
-}
-
-//---------------------------------------------------------------------------
-//
-// This is called from InputState::ClearAllInput and resets all static state being used here.
-//
-//---------------------------------------------------------------------------
-
-void GameInterface::clearlocalinputstate()
-{
-    localInput = {};
 }
 
 END_PS_NS

@@ -838,9 +838,9 @@ loc_flag:
                     nHeight += h;
 
                     DExhumedActor* target = nullptr;
-                    if (sPlayerInput[nPlayer].pTarget != nullptr && Autoaim(nPlayer))
+                    if (PlayerList[nPlayer].pTarget != nullptr && Autoaim(nPlayer))
                     {
-                        DExhumedActor* t = sPlayerInput[nPlayer].pTarget;
+                        DExhumedActor* t = PlayerList[nPlayer].pTarget;
                         // only autoaim if target is in front of the player.
 						assert(t->sector());
                         DAngle angletotarget = (t->spr.pos - pPlayerActor->spr.pos).Angle();
@@ -942,7 +942,7 @@ void DrawWeapons(double interpfrac)
 
     int var_28 = var_30 + WeaponInfo[nWeapon].b[var_34];
 
-    int8_t nShade = initsectp->ceilingshade;
+    int8_t nShade = PlayerList[nLocalPlayer].pActor->sector()->ceilingshade;
 
     int nDouble = PlayerList[nLocalPlayer].nDouble;
     int nPal = kPalNormal;

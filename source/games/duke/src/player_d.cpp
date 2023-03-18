@@ -1784,7 +1784,7 @@ static void movement(int snum, ESyncBits actions, sectortype* psect, double floo
 
 		p->on_warping_sector = 0;
 
-		if ((actions & SB_CROUCH) || crouch_toggle)	// FIXME: The crouch_toggle check here is not network safe and needs revision when multiplayer is going.
+		if (actions & SB_CROUCH)
 		{
 			playerCrouch(snum);
 		}
@@ -2732,6 +2732,8 @@ void processinput_d(int snum)
 	shrunk = (pact->spr.scale.Y < 0.5);
 	getzrange(p->GetActor()->getPosWithOffsetZ(), psectp, &ceilingz, chz, &floorz, clz, 10.1875, CLIPMASK0);
 
+	setPlayerActorViewZOffset(pact);
+
 	p->truefz = getflorzofslopeptr(psectp, p->GetActor()->getPosWithOffsetZ());
 	p->truecz = getceilzofslopeptr(psectp, p->GetActor()->getPosWithOffsetZ());
 
@@ -2823,6 +2825,7 @@ void processinput_d(int snum)
 
 	if (p->newOwner != nullptr)
 	{
+		setForcedSyncInput();
 		p->vel.X = p->vel.Y = 0;
 		pact->vel.X = 0;
 
@@ -2840,7 +2843,10 @@ void processinput_d(int snum)
 	auto oldpos = p->GetActor()->opos;
 
 	if (p->on_crane != nullptr)
+	{
+		setForcedSyncInput();
 		goto HORIZONLY;
+	}
 
 	p->playerweaponsway(pact->vel.X);
 
@@ -2868,13 +2874,14 @@ void processinput_d(int snum)
 	p->psectlotag = psectlotag;
 
 	//Do the quick lefts and rights
-	p->Angles.doViewYaw(actions);
+	p->Angles.doViewYaw(&p->sync);
 
 	if (movementBlocked(p))
 	{
 		doubvel = 0;
 		p->vel.X = 0;
 		p->vel.Y = 0;
+		setForcedSyncInput();
 	}
 	else if (SyncInput())
 	{
@@ -2885,7 +2892,7 @@ void processinput_d(int snum)
 		p->GetActor()->spr.Angles.Yaw += p->adjustavel(PlayerInputAngVel(snum));
 	}
 
-	p->Angles.doYawKeys(&actions);
+	p->Angles.doYawKeys(&p->sync);
 	purplelavacheck(p);
 
 	if (p->spritebridge == 0 && pact->insector())
@@ -3022,7 +3029,7 @@ HORIZONLY:
 	}
 
 	// RBG***
-	SetActor(pact, p->GetActor()->spr.pos);
+	SetActor(pact, pact->spr.pos);
 
 	if (psectlotag < 3)
 	{
@@ -3095,12 +3102,17 @@ HORIZONLY:
 		playerAimDown(snum, actions);
 	}
 
-	if (SyncInput())
+	if (p->centeringView())
+	{
+		p->sync.horz = 0;
+		setForcedSyncInput();
+	}
+	else if (SyncInput())
 	{
 		p->GetActor()->spr.Angles.Pitch += GetPlayerHorizon(snum);
 	}
 
-	p->Angles.doPitchKeys(&actions, GetPlayerHorizon(snum).Sgn());
+	p->Angles.doPitchKeys(&p->sync);
 
 	p->checkhardlanding();
 

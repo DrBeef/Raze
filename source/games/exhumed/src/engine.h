@@ -56,10 +56,6 @@ enum {
     kSectLava = 0x4000,
 };
 
-extern DVector3 initpos;
-extern DAngle inita;
-extern sectortype* initsectp;
-
 extern int nCurChunkNum;
 
 // all static counters combined in an array for easier maintenance.

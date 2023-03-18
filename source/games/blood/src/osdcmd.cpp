@@ -31,20 +31,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 BEGIN_BLD_NS
 
-void GameInterface::WarpToCoords(double x, double y, double z, DAngle ang)
-{
-	PLAYER* pPlayer = &gPlayer[myconnectindex];
-
-	pPlayer->actor->spr.pos = { x, y, z };
-	playerResetInertia(pPlayer);
-
-	if (ang != DAngle::fromDeg(INT_MIN))
-	{
-		pPlayer->actor->spr.Angles.Yaw = ang;
-		pPlayer->actor->backupang();
-	}
-}
-
 void GameInterface::ToggleThirdPerson()
 {
 	if (gamestate != GS_LEVEL) return;

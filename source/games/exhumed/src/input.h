@@ -29,36 +29,7 @@ enum {
     kButtonCheatItems = 0x100,
 };
 
-// 32 bytes
-struct PlayerInput
-{
-    TObjPtr<DExhumedActor*> pTarget;
-    DVector2 vel;
-    uint16_t buttons;
-    float nAngle;
-    float pan;
-    int8_t nItem;
-    ESyncBits actions;
-
-    int getNewWeapon() const
-    {
-        return (actions & SB_WEAPONMASK_BITS).GetValue();
-    }
-
-    void SetNewWeapon(int weap)
-    {
-        actions = (actions & ~SB_WEAPONMASK_BITS) | (ESyncBits::FromInt(weap) & SB_WEAPONMASK_BITS);
-    }
-
-};
-
 void ClearSpaceBar(int nPlayer);
-
-int GetLocalInput();
-
-extern PlayerInput sPlayerInput[];
-extern InputPacket localInput;
-extern int lLocalCodes;
 
 END_PS_NS
 

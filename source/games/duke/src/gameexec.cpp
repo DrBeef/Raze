@@ -551,7 +551,7 @@ void DoPlayer(bool bSet, int lVar1, int lLabelID, int lVar2, DDukeActor* sActor,
 		break;
 
 	case PLAYER_NEWOWNER:
-		if (bSet) ps[iPlayer].newOwner = vValue.safeActor();
+		if (bSet && (ps[iPlayer].newOwner = vValue.safeActor())) setForcedSyncInput();
 		else SetGameVarID(lVar2, ps[iPlayer].newOwner, sActor, sPlayer);
 		break;
 
@@ -621,7 +621,7 @@ void DoPlayer(bool bSet, int lVar1, int lLabelID, int lVar2, DDukeActor* sActor,
 		break;
 
 	case PLAYER_ON_CRANE:
-		if (bSet) ps[iPlayer].on_crane = vValue.safeActor();
+		if (bSet && (ps[iPlayer].on_crane = vValue.safeActor())) setForcedSyncInput();
 		else SetGameVarID(lVar2, (ps[iPlayer].on_crane), sActor, sPlayer);
 		break;
 
@@ -2268,7 +2268,6 @@ int ParseState::parse(void)
 			ps[g_p].wackedbyactor = nullptr;
 			ps[g_p].shield_amount = gs.max_armour_amount;
 			ps[g_p].dead_flag = 0;
-			ps[g_p].resurrected = false;
 			ps[g_p].pals.a = 0;
 			ps[g_p].footprintcount = 0;
 			ps[g_p].weapreccnt = 0;

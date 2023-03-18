@@ -203,8 +203,7 @@ void DrawView(double interpfrac, bool sceneonly)
     auto nDoppleOldCstat = pDop->spr.cstat;
 
     // update render angles.
-    pPlayer->Angles.updateRenderAngles(interpfrac);
-    UpdatePlayerSpriteAngle(pPlayer);
+    pPlayer->Angles.updateCameraAngles(interpfrac);
 
     if (nSnakeCam >= 0 && !sceneonly)
     {
@@ -249,6 +248,8 @@ void DrawView(double interpfrac, bool sceneonly)
             pDop->spr.cstat |= CSTAT_SPRITE_INVISIBLE;
         }
     }
+
+    const auto ampos = nCamerapos.XY();
 
     if (nSnakeCam >= 0 && !sceneonly)
     {
@@ -340,12 +341,6 @@ void DrawView(double interpfrac, bool sceneonly)
                     if (ang2.Degrees() < 0)
                         ang2 = -ang2;
 
-                    if (ang2 > mapangle(10))
-                    {
-                        inita -= ang2 * (1. / 8.);
-                        return;
-                    }
-
                     if (bSubTitles)
                     {
                         subtitleOverlay.Start(I_GetTimeNS() * (120. / 1'000'000'000));
@@ -379,7 +374,7 @@ void DrawView(double interpfrac, bool sceneonly)
                 }
             }
 
-            DrawMap(nCamerapos.XY(), nCameraangles.Yaw, interpfrac);
+            DrawMap(ampos, nCameraangles.Yaw, interpfrac);
         }
     }
     else

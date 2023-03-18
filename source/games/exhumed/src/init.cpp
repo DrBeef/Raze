@@ -39,10 +39,6 @@ enum
     kTagRamses = 61,
 };
 
-DVector3 initpos;
-DAngle inita;
-sectortype* initsectp;
-
 int nCurChunkNum = 0;
 
 int Counters[kNumCounters];
@@ -145,10 +141,9 @@ uint8_t LoadLevel(MapRecord* map)
 
     sectortype* initsect;
     SpawnSpriteDef spawned;
+    DVector3 initpos;
     int16_t mapang;
     loadMap(currentLevel->fileName, 0, &initpos, &mapang, &initsect, spawned);
-    inita = DAngle::fromBuild(mapang);
-    initsectp = initsect;
     auto actors = spawnactors(spawned);
 
     int i;
@@ -164,6 +159,13 @@ uint8_t LoadLevel(MapRecord* map)
     precache();
 
     LoadObjects(actors);
+
+    for (int i = 0; i < nTotalPlayers; i++)
+    {
+        SetSavePoint(i, initpos, initsect, DAngle::fromBuild(mapang));
+        RestartPlayer(i);
+        InitPlayerKeys(i);
+    }
     return true;
 }
 
@@ -179,13 +181,6 @@ void InitLevel(MapRecord* map)
     currentLevel = map;
     if (!LoadLevel(map)) {
         I_Error("Cannot load %s...\n", map->fileName.GetChars());
-    }
-
-    for (int i = 0; i < nTotalPlayers; i++)
-    {
-        SetSavePoint(i, initpos, initsectp, inita);
-        RestartPlayer(i);
-        InitPlayerKeys(i);
     }
     EndLevel = 0;
     ResetView();
@@ -769,9 +764,9 @@ void ExamineSprites(TArray<DExhumedActor*>& actors)
 
     if (nNetPlayerCount)
     {
-        auto pActor = insertActor(initsectp, 0);
+        auto pActor = insertActor(PlayerList[nLocalPlayer].pActor->sector(), 0);
 
-        pActor->spr.pos = initpos;
+        pActor->spr.pos = PlayerList[nLocalPlayer].pActor->spr.pos;
         pActor->spr.cstat = CSTAT_SPRITE_INVISIBLE;
         nNetStartSprite[nNetStartSprites] = pActor;
         nNetStartSprites++;
@@ -839,8 +834,6 @@ void LoadObjects(TArray<DExhumedActor*>& actors)
         runlist_ChangeChannel(nChannel, 0);
         runlist_ReadyChannel(nChannel);
     }
-
-    nCamerapos = initpos;
 }
 
 //---------------------------------------------------------------------------
@@ -853,10 +846,7 @@ void SerializeInit(FSerializer& arc)
 {
     if (arc.BeginObject("init"))
     {
-        arc("init", initpos)
-            ("inita", inita)
-            ("initsect", initsectp)
-            ("curchunk", nCurChunkNum)
+        arc("curchunk", nCurChunkNum)
             .Array("counters", Counters, kNumCounters)
             .EndObject();
     }

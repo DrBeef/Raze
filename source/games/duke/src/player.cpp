@@ -545,6 +545,9 @@ void playerisdead(int snum, int psectlotag, double floorz, double ceilingz)
 	auto p = &ps[snum];
 	auto actor = p->GetActor();
 
+	// lock input when dead.
+	setForcedSyncInput();
+
 	if (p->dead_flag == 0)
 	{
 		if (actor->spr.pal != 1)
@@ -726,7 +729,7 @@ void playerJump(int snum, double floorz, double ceilingz)
 
 void player_struct::apply_seasick()
 {
-	if (isRRRA() && SeaSick && (dead_flag == 0 || (dead_flag && resurrected)))
+	if (isRRRA() && SeaSick && (dead_flag == 0))
 	{
 		if (SeaSick < 250)
 		{
@@ -958,6 +961,8 @@ bool movementBlocked(player_struct *p)
 		p->hard_landing ||
 		p->access_incs > 0 ||
 		p->knee_incs > 0 ||
+		p->GetActor()->spr.extra <= 0 ||
+		(p->dead_flag && !ud.god) ||
 		(blockingweapon() && p->kickback_pic > 1 && p->kickback_pic < weapondelay()));
 }
 

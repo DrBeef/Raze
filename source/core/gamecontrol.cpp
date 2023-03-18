@@ -178,6 +178,7 @@ CVAR(Bool, disableautoload, false, CVAR_ARCHIVE | CVAR_NOINITCALL | CVAR_GLOBALC
 
 extern int hud_size_max;
 
+static bool sendPause;
 bool pausedWithKey;
 
 bool gamesetinput = false;
@@ -1289,6 +1290,12 @@ void CONFIG_ReadCombatMacros()
 //==========================================================================
 
 
+CCMD(pause)
+{
+	sendPause = true;
+}
+
+
 CCMD(snd_reset)
 {
 	Mus_Stop();
@@ -1510,6 +1517,12 @@ DEFINE_ACTION_FUNCTION(_Raze, PlayerName)
 DEFINE_ACTION_FUNCTION_NATIVE(_Raze, GetBuildTime, I_GetBuildTime)
 {
 	ACTION_RETURN_INT(I_GetBuildTime());
+}
+
+DEFINE_ACTION_FUNCTION_NATIVE(_Raze, forceSyncInput, setForcedSyncInput)
+{
+	setForcedSyncInput();
+	return 0;
 }
 
 DEFINE_ACTION_FUNCTION(_Raze, PickTexture)

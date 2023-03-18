@@ -14,14 +14,9 @@
 #include "vectors.h"
 
 
-struct ControlInfo
+struct HIDInput
 {
-	float       dx;
-	float       dy;
-	float       dz;
-	float       dyaw;
-	float       dpitch;
-	float       droll;
+	float       joyaxes[NUM_JOYAXIS];
 	float       mouseturnx;
 	float       mouseturny;
 	float       mousemovex;
@@ -50,7 +45,7 @@ public:
 		g_mousePos.Y += y;
 	}
 
-	void GetMouseDelta(ControlInfo* hidInput);
+	void GetMouseDelta(HIDInput* hidInput);
 
 	void ClearAllInput();
 	bool CheckAllInput()
@@ -63,7 +58,6 @@ public:
 
 extern InputState inputState;
 
-ControlInfo CONTROL_GetInput();
 int32_t handleevents(void);
 
 enum GameFunction_t
@@ -102,7 +96,7 @@ enum GameFunction_t
 };
 
 void SetupGameButtons();
-void ApplyGlobalInput(InputPacket& input, ControlInfo* const hidInput, bool const crouchable = true, bool const disableToggle = false);
+void ApplyGlobalInput(HIDInput* const hidInput, InputPacket* const inputBuffer);
 extern ESyncBits ActionsToSend;
 extern bool gamesetinput;
 
@@ -114,6 +108,12 @@ inline bool SyncInput()
 inline float backendinputscale()
 {
 	return (1.f / 16.f);
+}
+
+inline void getHidInput(HIDInput* const hidInput)
+{
+	inputState.GetMouseDelta(hidInput);
+	if (use_joystick) I_GetAxes(hidInput->joyaxes);
 }
 
 //---------------------------------------------------------------------------

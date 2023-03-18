@@ -19,13 +19,14 @@
 
 BEGIN_DUKE_NS
 
+extern player_struct ps[MAXPLAYERS];
+
 struct GameInterface : public ::GameInterface
 {
 	const char* Name() override { return "Duke"; }
 	void app_init() override;
 	void loadPalette() override;
 	void SetupSpecialTextures(TilesetBuildInfo& info) override;
-	void clearlocalinputstate() override;
 	bool GenerateSavePic() override;
 	void PlayHudSound() override;
 	GameStats getStats() override;
@@ -36,10 +37,9 @@ struct GameInterface : public ::GameInterface
 	FSavegameInfo GetSaveSig() override;
 	double SmallFontScale() override { return isRR() ? 0.5 : 1.; }
 	void SerializeGameState(FSerializer& arc) override;
-	std::pair<DVector3, DAngle> GetCoordinates() override;
 	void ExitFromMenu() override;
 	void DrawPlayerSprite(const DVector2& origin, bool onteam) override;
-	void GetInput(ControlInfo* const hidInput, double const scaleAdjust, InputPacket* packet = nullptr) override;
+	void GetInput(HIDInput* const hidInput, InputPacket* const inputBuffer, InputPacket* const currInput, const double scaleAdjust) override;
 	void UpdateSounds() override;
 	void Startup() override;
 	void DrawBackground() override;
@@ -51,7 +51,8 @@ struct GameInterface : public ::GameInterface
 	void NewGame(MapRecord* map, int skill, bool) override;
 	void LevelCompleted(MapRecord* map, int skill) override;
 	bool DrawAutomapPlayer(const DVector2& mxy, const DVector2& cpos, const DAngle cang, const DVector2& xydim, const double czoom, double const interpfrac) override;
-	void WarpToCoords(double x, double y, double z, DAngle ang) override;
+	DCoreActor* getConsoleActor() override { return ps[myconnectindex].GetActor(); }
+	PlayerAngles* getConsoleAngles() override { return &ps[myconnectindex].Angles; }
 	void ToggleThirdPerson() override;
 	void SwitchCoopView() override;
 	void ToggleShowWeapon() override;

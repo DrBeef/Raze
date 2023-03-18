@@ -48,7 +48,6 @@
 static int WeaponToSend = 0;
 ESyncBits ActionsToSend = 0;
 static int dpad_lock = 0;
-bool sendPause;
 bool crouch_toggle;
 
 // Mouse speeds
@@ -65,7 +64,7 @@ CVARD(Bool, invertmouse, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG, "invert vertic
 //
 //==========================================================================
 
-void InputState::GetMouseDelta(ControlInfo * hidInput)
+void InputState::GetMouseDelta(HIDInput * hidInput)
 {
 	g_mousePos *= backendinputscale();
 
@@ -142,7 +141,7 @@ void InputState::ClearAllInput()
 	{
 		ActionsToSend = 0;
 		crouch_toggle = false;
-		gi->clearlocalinputstate();		// also clear game local input state.
+		clearLocalInputBuffer();		// also clear game local input state.
 	}
 	else if (gamestate == GS_LEVEL && crouch_toggle)
 	{
@@ -193,34 +192,6 @@ int32_t handleevents(void)
 	I_StartFrame();
 	I_StartTic();
 	return 0;
-}
-
-//==========================================================================
-//
-//
-//
-//==========================================================================
-
-ControlInfo CONTROL_GetInput()
-{
-	ControlInfo hidInput {};
-
-	inputState.GetMouseDelta(&hidInput);
-
-	if (use_joystick)
-	{
-		// Handle joysticks/game controllers.
-		float joyaxes[NUM_JOYAXIS];
-
-		I_GetAxes(joyaxes);
-
-		hidInput.dyaw += -joyaxes[JOYAXIS_Yaw];
-		hidInput.dx += joyaxes[JOYAXIS_Side] * .5f;
-		hidInput.dz += joyaxes[JOYAXIS_Forward] * .5f;
-		hidInput.dpitch += -joyaxes[JOYAXIS_Pitch];
-	}
-
-	return hidInput;
 }
 
 //---------------------------------------------------------------------------
@@ -351,11 +322,6 @@ CCMD(holsterweapon)
 	ActionsToSend |= SB_HOLSTER;
 }
 
-CCMD(pause)
-{
-	sendPause = true;
-}
-
 CCMD(warptocoords)
 {
 	if (netgame)
@@ -365,7 +331,7 @@ CCMD(warptocoords)
 	}
 	if (argv.argc() < 4)
 	{
-		Printf("warptocoords [x] [y] [z] [ang] (optional) [horiz] (optional): warps the player to the specified coordinates\n");
+		Printf("warptocoords [x] [y] [z] [yaw] (optional) [pitch] (optional): warps the player to the specified coordinates\n");
 		return;
 	}
 	if (gamestate != GS_LEVEL)
@@ -373,20 +339,14 @@ CCMD(warptocoords)
 		Printf("warptocoords: must be in a level\n");
 		return;
 	}
-	int x = atoi(argv[1]);
-	int y = atoi(argv[2]);
-	int z = atoi(argv[3]);
-	int ang = INT_MIN, horiz = INT_MIN;
-	if (argv.argc() > 4)
-	{
-		ang = atoi(argv[4]);
-	}
-	if (argv.argc() > 5)
-	{
-		horiz = atoi(argv[5]);
-	}
 
-	gi->WarpToCoords(x, y, z, DAngle::fromDeg(ang));
+	if (const auto pActor = gi->getConsoleActor())
+	{
+		pActor->spr.pos = DVector3(atof(argv[1]), atof(argv[2]), atof(argv[3]));
+		if (argv.argc() > 4) pActor->spr.Angles.Yaw = DAngle::fromDeg(atof(argv[4]));
+		if (argv.argc() > 5) pActor->spr.Angles.Pitch = DAngle::fromDeg(atof(argv[5]));
+		pActor->backuploc();
+	}
 }
 
 CCMD(third_person_view)
@@ -404,84 +364,87 @@ CCMD(show_weapon)
 	gi->ToggleShowWeapon();
 }
 
-void ApplyGlobalInput(InputPacket& input, ControlInfo* hidInput, bool const crouchable, bool const disableToggle)
+void ApplyGlobalInput(HIDInput* const hidInput, InputPacket* const inputBuffer)
 {
-	if (WeaponToSend != 0) input.setNewWeapon(WeaponToSend);
+	if (WeaponToSend != 0) inputBuffer->setNewWeapon(WeaponToSend);
 	WeaponToSend = 0;
 	if (hidInput && buttonMap.ButtonDown(gamefunc_Dpad_Select))
 	{
 		// These buttons should not autorepeat. The game handlers are not really equipped for that.
-		if (hidInput->dz > 0 && !(dpad_lock & 1)) { dpad_lock |= 1;  input.setNewWeapon(WeaponSel_Prev); }
+		if (hidInput->joyaxes[JOYAXIS_Forward] > 0 && !(dpad_lock & 1)) { dpad_lock |= 1;  inputBuffer->setNewWeapon(WeaponSel_Prev); }
 		else dpad_lock &= ~1;
-		if (hidInput->dz < 0 && !(dpad_lock & 2)) { dpad_lock |= 2;  input.setNewWeapon(WeaponSel_Next); }
+		if (hidInput->joyaxes[JOYAXIS_Forward] < 0 && !(dpad_lock & 2)) { dpad_lock |= 2;  inputBuffer->setNewWeapon(WeaponSel_Next); }
 		else dpad_lock &= ~2;
-		if ((hidInput->dx < 0 || hidInput->dyaw < 0) && !(dpad_lock & 4)) { dpad_lock |= 4;  input.actions |= SB_INVPREV; }
+		if ((hidInput->joyaxes[JOYAXIS_Side] < 0 || hidInput->joyaxes[JOYAXIS_Yaw] > 0) && !(dpad_lock & 4)) { dpad_lock |= 4;  inputBuffer->actions |= SB_INVPREV; }
 		else dpad_lock &= ~4;
-		if ((hidInput->dx > 0 || hidInput->dyaw > 0) && !(dpad_lock & 8)) { dpad_lock |= 8;  input.actions |= SB_INVNEXT; }
+		if ((hidInput->joyaxes[JOYAXIS_Side] > 0 || hidInput->joyaxes[JOYAXIS_Yaw] < 0) && !(dpad_lock & 8)) { dpad_lock |= 8;  inputBuffer->actions |= SB_INVNEXT; }
 		else dpad_lock &= ~8;
 
-		// This eats the controller input for regular use
-		hidInput->dx = 0;
-		hidInput->dz = 0;
-		hidInput->dyaw = 0;
+		// This eats the controller inputBuffer-> for regular use
+		hidInput->joyaxes[JOYAXIS_Side] = 0;
+		hidInput->joyaxes[JOYAXIS_Forward] = 0;
+		hidInput->joyaxes[JOYAXIS_Yaw] = 0;
 	}
 	else dpad_lock = 0;
 
-	input.actions |= ActionsToSend;
+	inputBuffer->actions |= ActionsToSend;
 	ActionsToSend = 0;
 
-	if (buttonMap.ButtonDown(gamefunc_Aim_Up) || (buttonMap.ButtonDown(gamefunc_Dpad_Aiming) && hidInput->dz > 0)) 
-		input.actions |= SB_AIM_UP;
+	if (buttonMap.ButtonDown(gamefunc_Aim_Up) || (buttonMap.ButtonDown(gamefunc_Dpad_Aiming) && hidInput->joyaxes[JOYAXIS_Forward] > 0)) 
+		inputBuffer->actions |= SB_AIM_UP;
 
-	if ((buttonMap.ButtonDown(gamefunc_Aim_Down) || (buttonMap.ButtonDown(gamefunc_Dpad_Aiming) && hidInput->dz < 0))) 
-		input.actions |= SB_AIM_DOWN;
+	if ((buttonMap.ButtonDown(gamefunc_Aim_Down) || (buttonMap.ButtonDown(gamefunc_Dpad_Aiming) && hidInput->joyaxes[JOYAXIS_Forward] < 0))) 
+		inputBuffer->actions |= SB_AIM_DOWN;
 
 	if (buttonMap.ButtonDown(gamefunc_Dpad_Aiming))
-		hidInput->dz = 0;
+		hidInput->joyaxes[JOYAXIS_Forward] = 0;
 
 	if (buttonMap.ButtonDown(gamefunc_Jump))
-		input.actions |= SB_JUMP;
+		inputBuffer->actions |= SB_JUMP;
 
 	if (buttonMap.ButtonDown(gamefunc_Crouch) || buttonMap.ButtonDown(gamefunc_Toggle_Crouch) || crouch_toggle)
-		input.actions |= SB_CROUCH;
+		inputBuffer->actions |= SB_CROUCH;
 
 	if (buttonMap.ButtonDown(gamefunc_Toggle_Crouch))
 	{
-		crouch_toggle = !crouch_toggle && crouchable;
-		if (crouchable)	buttonMap.ClearButton(gamefunc_Toggle_Crouch);
+		crouch_toggle = !crouch_toggle;
+		buttonMap.ClearButton(gamefunc_Toggle_Crouch);
 	}
 
-	if (buttonMap.ButtonDown(gamefunc_Crouch) || buttonMap.ButtonDown(gamefunc_Jump) || disableToggle)
+	if (buttonMap.ButtonDown(gamefunc_Crouch) || buttonMap.ButtonDown(gamefunc_Jump))
 		crouch_toggle = false;
 
 	if (buttonMap.ButtonDown(gamefunc_Fire))
-		input.actions |= SB_FIRE;
+		inputBuffer->actions |= SB_FIRE;
 
 	if (buttonMap.ButtonDown(gamefunc_Alt_Fire))
-		input.actions |= SB_ALTFIRE;
+		inputBuffer->actions |= SB_ALTFIRE;
 
 	if (buttonMap.ButtonDown(gamefunc_Open))
 	{
 		if (isBlood()) buttonMap.ClearButton(gamefunc_Open);
-		input.actions |= SB_OPEN;
+		inputBuffer->actions |= SB_OPEN;
 	}
 	if (G_CheckAutorun(buttonMap.ButtonDown(gamefunc_Run)))
-		input.actions |= SB_RUN;
+		inputBuffer->actions |= SB_RUN;
 
 	if (!in_mousemode && !buttonMap.ButtonDown(gamefunc_Mouse_Aiming)) 
-		input.actions |= SB_AIMMODE;
+		inputBuffer->actions |= SB_AIMMODE;
 
 	if (buttonMap.ButtonDown(gamefunc_Look_Up)) 
-		input.actions |= SB_LOOK_UP;
+		inputBuffer->actions |= SB_LOOK_UP;
 
 	if (buttonMap.ButtonDown(gamefunc_Look_Down)) 
-		input.actions |= SB_LOOK_DOWN;
+		inputBuffer->actions |= SB_LOOK_DOWN;
 
 	if (buttonMap.ButtonDown(gamefunc_Look_Left)) 
-		input.actions |= SB_LOOK_LEFT;
+		inputBuffer->actions |= SB_LOOK_LEFT;
 
 	if (buttonMap.ButtonDown(gamefunc_Look_Right)) 
-		input.actions |= SB_LOOK_RIGHT;
+		inputBuffer->actions |= SB_LOOK_RIGHT;
+
+	if (buttonMap.ButtonDown(gamefunc_Quick_Kick))
+		inputBuffer->actions |= SB_QUICK_KICK;
 
 }
 

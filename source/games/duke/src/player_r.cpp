@@ -2160,7 +2160,7 @@ static void movement(int snum, ESyncBits actions, sectortype* psect, double floo
 
 		p->on_warping_sector = 0;
 
-		if (((actions & SB_CROUCH) || crouch_toggle) && !p->OnMotorcycle)	// FIXME: The crouch_toggle check here is not network safe and needs revision when multiplayer is going.
+		if ((actions & SB_CROUCH) && !p->OnMotorcycle)
 		{
 			playerCrouch(snum);
 		}
@@ -3353,22 +3353,21 @@ void processinput_r(int snum)
 	p->spritebridge = 0;
 
 	shrunk = (pact->spr.scale.Y < 0.125);
-	double tempfz;
 	if (pact->clipdist == 16)
 	{
 		getzrange(p->GetActor()->getPosWithOffsetZ(), psectp, &ceilingz, chz, &floorz, clz, 10.1875, CLIPMASK0);
-		tempfz = getflorzofslopeptr(psectp, p->GetActor()->getPosWithOffsetZ());
 	}
 	else
 	{
 		getzrange(p->GetActor()->getPosWithOffsetZ(), psectp, &ceilingz, chz, &floorz, clz, 0.25, CLIPMASK0);
-		tempfz = getflorzofslopeptr(psectp, p->GetActor()->getPosWithOffsetZ());
 	}
 
-	p->truefz = tempfz;
+	setPlayerActorViewZOffset(pact);
+
+	p->truefz = getflorzofslopeptr(psectp, p->GetActor()->getPosWithOffsetZ());
 	p->truecz = getceilzofslopeptr(psectp, p->GetActor()->getPosWithOffsetZ());
 
-	double truefdist = abs(p->GetActor()->getOffsetZ() - tempfz);
+	double truefdist = abs(p->GetActor()->getOffsetZ() - p->truefz);
 	if (clz.type == kHitSector && psectlotag == 1 && truefdist > gs.playerheight + 16)
 		psectlotag = 0;
 
@@ -3501,6 +3500,7 @@ void processinput_r(int snum)
 
 	if (p->newOwner != nullptr)
 	{
+		setForcedSyncInput();
 		p->vel.X = p->vel.Y = 0;
 		pact->vel.X = 0;
 
@@ -3518,7 +3518,10 @@ void processinput_r(int snum)
 	auto oldpos = p->GetActor()->opos;
 
 	if (p->on_crane != nullptr)
+	{
+		setForcedSyncInput();
 		goto HORIZONLY;
+	}
 
 	p->playerweaponsway(pact->vel.X);
 
@@ -3560,13 +3563,14 @@ void processinput_r(int snum)
 	p->psectlotag = psectlotag;
 
 	//Do the quick lefts and rights
-	p->Angles.doViewYaw(actions);
+	p->Angles.doViewYaw(&p->sync);
 
 	if (movementBlocked(p))
 	{
 		doubvel = 0;
 		p->vel.X = 0;
 		p->vel.Y = 0;
+		setForcedSyncInput();
 	}
 	else if (SyncInput())
 	{
@@ -3577,7 +3581,7 @@ void processinput_r(int snum)
 		p->GetActor()->spr.Angles.Yaw += p->adjustavel(PlayerInputAngVel(snum));
 	}
 
-	p->Angles.doYawKeys(&actions);
+	p->Angles.doYawKeys(&p->sync);
 	purplelavacheck(p);
 
 	if (p->spritebridge == 0 && pact->insector())
@@ -3818,7 +3822,7 @@ HORIZONLY:
 	}
 
 	// RBG***
-	SetActor(pact, p->GetActor()->spr.pos);
+	SetActor(pact, pact->spr.pos);
 
 	if (psectlotag == 800 && (!isRRRA() || !p->lotag800kill))
 	{
@@ -3915,12 +3919,17 @@ HORIZONLY:
 		p->GetActor()->spr.Angles.Pitch += maphoriz(d);
 	}
 
-	if (SyncInput())
+	if (p->centeringView())
+	{
+		p->sync.horz = 0;
+		setForcedSyncInput();
+	}
+	else if (SyncInput())
 	{
 		p->GetActor()->spr.Angles.Pitch += GetPlayerHorizon(snum);
 	}
 
-	p->Angles.doPitchKeys(&actions, GetPlayerHorizon(snum).Sgn());
+	p->Angles.doPitchKeys(&p->sync);
 
 	p->checkhardlanding();
 

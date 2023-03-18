@@ -70,7 +70,10 @@ void GameInterface::Ticker()
 		everyothertime++;
 
 		// this must be done before the view is backed up.
-		ps[myconnectindex].Angles.resetRenderAngles();
+		for (int i = connecthead; i >= 0; i = connectpoint2[i])
+		{
+			ps[i].Angles.resetCameraAngles();
+		}
 
 		// disable synchronised input if set by game.
 		resetForcedSyncInput();
@@ -87,17 +90,14 @@ void GameInterface::Ticker()
 
 		for (int i = connecthead; i >= 0; i = connectpoint2[i])
 		{
-			if (playrunning())
-			{
-				auto p = &ps[i];
-				if (p->pals.a > 0)
-					p->pals.a--;
+			auto p = &ps[i];
+			if (p->pals.a > 0)
+				p->pals.a--;
 
-				hud_input(i);
-				processinputvel(i);
-				fi.processinput(i);
-				fi.checksectors(i);
-			}
+			hud_input(i);
+			processinputvel(i);
+			fi.processinput(i);
+			fi.checksectors(i);
 		}
 
 		fi.think();

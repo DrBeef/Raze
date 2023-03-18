@@ -91,6 +91,7 @@
 #include "i_interface.h"
 #include "texinfo.h"
 #include "texturemanager.h"
+#include "gameinput.h"
 #include "menustate.h"
 
 void RazeXR_setUseScreenLayer(bool use);
@@ -139,8 +140,7 @@ void G_BuildTiccmd(ticcmd_t* cmd)
 	}
 	cmd->ucmd = {};
 	I_GetEvent();
-	auto input = CONTROL_GetInput();
-	gi->GetInput(&input, inputScale, &cmd->ucmd);
+	getInput(inputScale, gi->getConsoleAngles(), &cmd->ucmd);
 	cmd->consistency = consistency[myconnectindex][(maketic / ticdup) % BACKUPTICS];
 }
 
@@ -593,7 +593,7 @@ void TryRunTics (void)
 	oldentertics = entertic;
 
 	// update the scale factor for unsynchronised input here.
-	inputScale = !SyncInput() ? I_GetInputFrac() : 1.;
+	inputScale = I_GetInputFrac();
 
 	// get available tics
 	NetUpdate ();
@@ -643,8 +643,7 @@ void TryRunTics (void)
 		if (!SyncInput())
 		{
 			I_GetEvent();
-			auto input = CONTROL_GetInput();
-			gi->GetInput(&input, inputScale);
+			getInput(inputScale, gi->getConsoleAngles());
 		}
 		return;
 	}

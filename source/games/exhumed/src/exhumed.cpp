@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "ns.h"
 #include "engine.h"
 #include "exhumed.h"
+#include "aistuff.h"
 #include "sequence.h"
 #include "names.h"
 #include "player.h"
@@ -66,7 +67,6 @@ IMPLEMENT_POINTERS_END
 
 size_t MarkMove();
 size_t MarkBullets();
-size_t MarkInput();
 size_t MarkItems();
 size_t MarkLighting();
 size_t MarkObjects();
@@ -80,7 +80,6 @@ size_t MarkRunlist();
 static void markgcroots()
 {
     MarkBullets();
-    MarkInput();
     MarkItems();
     MarkLighting();
     MarkObjects();
@@ -102,8 +101,6 @@ void InitCheats();
 
 int EndLevel = 0;
 
-
-InputPacket localInput;
 
 ////////
 
@@ -150,8 +147,6 @@ int lCountDown = 0;
 int nEnergyTowers = 0;
 
 int nCfgNetPlayers = 0;
-
-int lLocalCodes = 0;
 
 bool bCoordinates = false;
 
@@ -375,28 +370,44 @@ void GameInterface::Ticker()
 	}
     else if (EndLevel == 0)
     {
+        // Shorten some constant array accesses.
+        const auto pPlayer = &PlayerList[nLocalPlayer];
+        auto& pInput = pPlayer->input;
+
         // this must be done before the view is backed up.
-        PlayerList[nLocalPlayer].Angles.resetRenderAngles();
-        UpdatePlayerSpriteAngle(&PlayerList[nLocalPlayer]);
+        pPlayer->Angles.resetCameraAngles();
 
         // disable synchronised input if set by game.
         resetForcedSyncInput();
 
-        auto& lPlayerVel = sPlayerInput[nLocalPlayer].vel;
+        // set new player input, factoring in previous view centering.
+        const auto oldactions = pInput.actions;
+        pInput = playercmds[nLocalPlayer].ucmd;
+        if (oldactions & SB_CENTERVIEW) pInput.actions |= SB_CENTERVIEW;   
 
-        auto inputvect = DVector2(localInput.fvel, localInput.svel).Rotated(inita) * 0.375;
+        const auto inputvect = DVector2(pInput.fvel, pInput.svel).Rotated(pPlayer->pActor->spr.Angles.Yaw) * 0.375;
 
         for (int i = 0; i < 4; i++)
         {
             // Velocities are stored as Q14.18
-            lPlayerVel += inputvect;
-            lPlayerVel *= 0.953125;
+            pPlayer->vel += inputvect;
+            pPlayer->vel *= 0.953125;
         }
         UpdateInterpolations();
 
-        if (localInput.actions & SB_INVPREV)
+        if (nFreeze) setForcedSyncInput();
+
+        if (pPlayer->nHealth <= 0)
         {
-            int nItem = PlayerList[nLocalPlayer].nItem;
+            setForcedSyncInput();
+            auto& packet = pInput;
+            packet.fvel = packet.svel = packet.avel = packet.horz = 0;
+            pPlayer->vel.Zero();
+        }
+
+        if (pInput.actions & SB_INVPREV)
+        {
+            int nItem = pPlayer->nItem;
 
             int i;
             for (i = 6; i > 0; i--)
@@ -404,16 +415,16 @@ void GameInterface::Ticker()
                 nItem--;
                 if (nItem < 0) nItem = 5;
 
-                if (PlayerList[nLocalPlayer].items[nItem] != 0)
+                if (pPlayer->items[nItem] != 0)
                     break;
             }
 
-            if (i > 0) PlayerList[nLocalPlayer].nItem = nItem;
+            if (i > 0) pPlayer->nItem = nItem;
         }
 
-        if (localInput.actions & SB_INVNEXT)
+        if (pInput.actions & SB_INVNEXT)
         {
-            int nItem = PlayerList[nLocalPlayer].nItem;
+            int nItem = pPlayer->nItem;
 
             int i;
             for (i = 6; i > 0; i--)
@@ -421,57 +432,57 @@ void GameInterface::Ticker()
                 nItem++;
                 if (nItem == 6) nItem = 0;
 
-                if (PlayerList[nLocalPlayer].items[nItem] != 0)
+                if (pPlayer->items[nItem] != 0)
                     break;
             }
 
-            if (i > 0) PlayerList[nLocalPlayer].nItem = nItem;
+            if (i > 0) pPlayer->nItem = nItem;
         }
 
-        if (localInput.actions & SB_INVUSE)
+        if (pInput.actions & SB_INVUSE)
         {
-            if (PlayerList[nLocalPlayer].nItem != -1)
+            if (pPlayer->nItem != -1)
             {
-                localInput.setItemUsed(PlayerList[nLocalPlayer].nItem);
+                pInput.setItemUsed(pPlayer->nItem);
             }
         }
 
         for (int i = 0; i < 6; i++)
         {
-            if (localInput.isItemUsed(i))
+            if (pInput.isItemUsed(i))
             {
-                localInput.clearItemUsed(i);
-                if (PlayerList[nLocalPlayer].items[i] > 0)
+                pInput.clearItemUsed(i);
+                if (pPlayer->items[i] > 0)
                 {
-                    if (nItemMagic[i] <= PlayerList[nLocalPlayer].nMagic)
+                    if (nItemMagic[i] <= pPlayer->nMagic)
                     {
-                        sPlayerInput[nLocalPlayer].nItem = i;
+                        pPlayer->nCurrentItem = i;
                         break;
                     }
                 }
             }
         }
 
-        auto currWeap = PlayerList[nLocalPlayer].nCurrentWeapon;
-        int weap2 = localInput.getNewWeapon();
+        auto currWeap = pPlayer->nCurrentWeapon;
+        int weap2 = pInput.getNewWeapon();
         if (weap2 == WeaponSel_Next)
         {
             auto newWeap = currWeap == 6 ? 0 : currWeap + 1;
-            while (newWeap != 0 && (!(PlayerList[nLocalPlayer].nPlayerWeapons & (1 << newWeap)) || (PlayerList[nLocalPlayer].nPlayerWeapons & (1 << newWeap) && PlayerList[nLocalPlayer].nAmmo[newWeap] == 0)))
+            while (newWeap != 0 && (!(pPlayer->nPlayerWeapons & (1 << newWeap)) || (pPlayer->nPlayerWeapons & (1 << newWeap) && pPlayer->nAmmo[newWeap] == 0)))
             {
                 newWeap++;
                 if (newWeap > 6) newWeap = 0;
             }
-            localInput.setNewWeapon(newWeap + 1);
+            pInput.setNewWeapon(newWeap + 1);
         }
         else if (weap2 == WeaponSel_Prev)
         {
             auto newWeap = currWeap == 0 ? 6 : currWeap - 1;
-            while (newWeap != 0 && ((!(PlayerList[nLocalPlayer].nPlayerWeapons & (1 << newWeap)) || (PlayerList[nLocalPlayer].nPlayerWeapons & (1 << newWeap) && PlayerList[nLocalPlayer].nAmmo[newWeap] == 0))))
+            while (newWeap != 0 && ((!(pPlayer->nPlayerWeapons & (1 << newWeap)) || (pPlayer->nPlayerWeapons & (1 << newWeap) && pPlayer->nAmmo[newWeap] == 0))))
             {
                 newWeap--;
             }
-            localInput.setNewWeapon(newWeap + 1);
+            pInput.setNewWeapon(newWeap + 1);
         }
         else if (weap2 == WeaponSel_Alt)
         {
@@ -479,21 +490,10 @@ void GameInterface::Ticker()
         }
 
         // make weapon selection persist until it gets used up.
-        int weap = sPlayerInput[nLocalPlayer].getNewWeapon();
-        if (weap2 <= 0 || weap2 > 7) sPlayerInput[nLocalPlayer].SetNewWeapon(weap);
+        int weap = pInput.getNewWeapon();
+        if (weap2 <= 0 || weap2 > 7) pInput.setNewWeapon(weap);     
 
-        auto oldactions = sPlayerInput[nLocalPlayer].actions;
-        sPlayerInput[nLocalPlayer].actions = localInput.actions;
-        if (oldactions & SB_CENTERVIEW) sPlayerInput[nLocalPlayer].actions |= SB_CENTERVIEW;        
-
-        sPlayerInput[nLocalPlayer].buttons = lLocalCodes;
-        sPlayerInput[nLocalPlayer].pTarget = bestTarget;
-        sPlayerInput[nLocalPlayer].nAngle = localInput.avel;
-        sPlayerInput[nLocalPlayer].pan = localInput.horz;
-
-        Ra[nLocalPlayer].pTarget = bestTarget;
-
-        lLocalCodes = 0;
+        pPlayer->pTarget = Ra[nLocalPlayer].pTarget = bestTarget;
 
         PlayClock += 4;
         if (PlayClock == 8) gameaction = ga_autosave;	// let the game run for 1 frame before saving.
@@ -617,6 +617,7 @@ void DeleteActor(DExhumedActor* actor)
         bestTarget = nullptr;
     }
 
+    UnlinkIgnitedAnim(actor);
     actor->Destroy();
 }
 
@@ -689,13 +690,6 @@ bool GameInterface::CanSave()
 ::GameInterface* CreateInterface()
 {
     return new GameInterface;
-}
-
-std::pair<DVector3, DAngle> GameInterface::GetCoordinates()
-{
-    auto pPlayerActor = PlayerList[nLocalPlayer].pActor;
-    if (!pPlayerActor) return std::make_pair(DVector3(DBL_MAX, 0, 0), nullAngle);
-    return std::make_pair(pPlayerActor->spr.pos, pPlayerActor->spr.Angles.Yaw);
 }
 
 

@@ -433,9 +433,9 @@ void EXSoundEngine::CalcPosVel(int type, const void* source, const float pt[3], 
             Snake* pSnake = &SnakeList[nSnakeCam];
             campos = pSnake->pSprites[0]->spr.pos;
         }
-        else
+        else if (const auto pActor = PlayerList[nLocalPlayer].pActor)
         {
-            campos = initpos;
+            campos = pActor->spr.pos;
         }
         auto fcampos = GetSoundPos(campos);
 
@@ -500,6 +500,8 @@ void GameInterface::UpdateSounds()
     if (nFreeze)
         return;
 
+    const auto pActor = PlayerList[nLocalPlayer].pActor;
+
     DVector3 pos;
     DAngle ang;
     if (nSnakeCam > -1)
@@ -508,10 +510,10 @@ void GameInterface::UpdateSounds()
         pos = pSnake->pSprites[0]->spr.pos;
         ang = pSnake->pSprites[0]->spr.Angles.Yaw;
     }
-    else
+    else if (pActor)
     {
-        pos = initpos;
-        ang = inita;
+        pos = pActor->spr.pos;
+        ang = pActor->spr.Angles.Yaw;
     }
     SoundListener listener;
     listener.angle = float(-ang.Radians()); // Build uses a period of 2048.

@@ -17,6 +17,9 @@ struct sectortype;
 struct tspritetype;
 class DCoreActor;
 struct MapRecord;
+struct PlayerAngles;
+
+void processMovement(HIDInput* const hidInput, InputPacket* const inputBuffer, InputPacket* const currInput, const double scaleAdjust, const int drink_amt = 0, const bool allowstrafe = true, const double turnscale = 1.);
 
 struct GameStats
 {
@@ -69,7 +72,6 @@ struct GameInterface
 	virtual void LoadTextureInfo(TilesetBuildInfo& info) {}
 	virtual void SetupSpecialTextures(TilesetBuildInfo&) {}
 	virtual void loadPalette();
-	virtual void clearlocalinputstate() {}
 	virtual void UpdateScreenSize() {}
 	virtual void FreeLevelData();
 	virtual void FreeGameData() {}
@@ -87,9 +89,8 @@ struct GameInterface
 	virtual void SerializeGameState(FSerializer& arc) {}
 	virtual void DrawPlayerSprite(const DVector2& origin, bool onteam) {}
 	virtual void SetAmbience(bool on) {}
-	virtual std::pair<DVector3, DAngle> GetCoordinates() { return {}; }
 	virtual void ExitFromMenu() { throw CExitEvent(0); }
-	virtual void GetInput(ControlInfo* const hidInput, double const scaleAdjust, InputPacket* packet = nullptr) {}
+	virtual void GetInput(HIDInput* const hidInput, InputPacket* const inputBuffer, InputPacket* const currInput, const double scaleAdjust) { processMovement(hidInput, inputBuffer, currInput, scaleAdjust); }
 	virtual void UpdateSounds() {}
 	virtual void ErrorCleanup() {}
 	virtual void Startup() {}
@@ -105,7 +106,8 @@ struct GameInterface
 	virtual bool DrawAutomapPlayer(const DVector2& mxy, const DVector2& cpos, const DAngle cang, const DVector2& xydim, const double czoom, double const interpfrac) { return false; }
 	virtual DAngle playerPitchMin() { return DAngle::fromDeg(57.375); }
 	virtual DAngle playerPitchMax() { return DAngle::fromDeg(-57.375); }
-	virtual void WarpToCoords(double x, double y, double z, DAngle a) {}
+	virtual DCoreActor* getConsoleActor() = 0;
+	virtual PlayerAngles* getConsoleAngles() = 0;
 	virtual void ToggleThirdPerson() { }
 	virtual void SwitchCoopView() { Printf("Unsupported command\n"); }
 	virtual void ToggleShowWeapon() { Printf("Unsupported command\n"); }

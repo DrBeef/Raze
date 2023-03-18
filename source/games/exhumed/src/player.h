@@ -65,7 +65,8 @@ struct Player
     uint16_t keys;
     int16_t nMagic;
     int16_t nItem;
-    uint8_t items[8];
+    int8_t nCurrentItem;
+    int8_t items[8];
     int16_t nAmmo[7]; // TODO - kMaxWeapons?
 
     int16_t nCurrentWeapon;
@@ -78,7 +79,9 @@ struct Player
     bool bPlayerPan, bLockPan;
     DAngle nDestVertPan;
 
+    InputPacket input;
     PlayerAngles Angles;
+    DVector2 vel;
     sectortype* pPlayerPushSect;
     sectortype* pPlayerViewSect;
 
@@ -101,6 +104,7 @@ struct Player
     TObjPtr<DExhumedActor*> pPlayerGrenade;
     TObjPtr<DExhumedActor*> pPlayerFloorSprite;
     TObjPtr<DExhumedActor*> pDoppleSprite;
+    TObjPtr<DExhumedActor*> pTarget;
 
 };
 
@@ -118,7 +122,6 @@ int GetPlayerFromActor(DExhumedActor* actor);
 void SetPlayerMummified(int nPlayer, int bIsMummified);
 int AddAmmo(int nPlayer, int nWeapon, int nAmmoAmount);
 void ShootStaff(int nPlayer);
-void UpdatePlayerSpriteAngle(Player* pPlayer);
 
 END_PS_NS
 
