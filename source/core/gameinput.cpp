@@ -206,7 +206,10 @@ void getInput(const double scaleAdjust, PlayerAngles* const plrAngles, InputPack
 	if (!SyncInput())
 	{
 		plrAngles->CameraAngles.Yaw += DAngle::fromDeg(input.avel);
-		plrAngles->CameraAngles.Pitch += DAngle::fromDeg(input.horz);
+
+		//For VR just set the pitch directly
+		plrAngles->CameraAngles.Pitch = DAngle::fromDeg(input.horz);
+		//plrAngles->CameraAngles.Pitch += DAngle::fromDeg(input.horz);
 	}
 
 	if (packet)
