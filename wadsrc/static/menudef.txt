@@ -558,6 +558,7 @@ OptionMenu "VROptionsMenu" protected
 	StaticText 	""
 	Option "Positional Tracking",	"vr_positional_tracking", "YesNo"
 	Option "6DoF Weapons",	"vr_6dof_weapons", "YesNo"
+	Slider "Weapon Pitch Adjust",	"vr_weaponPitchAdjust", 0.0, 90.0, 5
 	Option "VR Crosshair",	"vr_6dof_crosshair", "YesNo"
 
     StaticText ""
