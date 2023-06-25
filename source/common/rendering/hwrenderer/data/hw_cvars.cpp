@@ -120,13 +120,9 @@ CUSTOM_CVARD(Float, gl_texture_filter_anisotropic, 8.f, CVAR_ARCHIVE | CVAR_GLOB
 	screen->SetTextureFilterMode();
 }
 
-#ifdef __MOBILE__ // Default to Nearest mipmap
-CUSTOM_CVARD(Int, gl_texture_filter, 1, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL, "changes the texture filtering settings")
-#else
-CUSTOM_CVARD(Int, gl_texture_filter, 4, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL, "changes the texture filtering settings")
-#endif
+CUSTOM_CVARD(Int, gl_texture_filter, 5, CVAR_ARCHIVE|CVAR_GLOBALCONFIG|CVAR_NOINITCALL, "changes the texture filtering settings")
 {
-	if (self < 0 || self > 6) self=4;
+	if (self < 0 || self > 6) self=5;
 	screen->SetTextureFilterMode();
 }
 
