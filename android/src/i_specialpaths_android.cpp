@@ -117,7 +117,7 @@ FString M_GetAutoexecPath()
 
 FString M_GetConfigPath(bool for_reading)
 {
-	return GetUserFile(GAMENAMELOWERCASE ".ini");
+	return GetUserFile(GAMENAMELOWERCASE "xr.ini");
 }
 
 //===========================================================================

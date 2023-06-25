@@ -185,7 +185,7 @@ FString M_GetCajunPath(const char *botfilename)
 
 FString M_GetConfigPath(bool for_reading)
 {
-	return GetUserFile(GAMENAMELOWERCASE ".ini");
+	return GetUserFile(GAMENAMELOWERCASE "xr.ini");
 }
 
 //===========================================================================
