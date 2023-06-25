@@ -1541,7 +1541,7 @@ void ProcessInput(PLAYER* pPlayer)
 		get_weapon_pos_and_angle(px, py, pz, pitch, yaw);
 
 		//Position for crosshair calculation
-		DVector3 spos = actor->spr.pos.plusZ(-(pz * vr_hunits_per_meter()) - actor->viewzoffset);
+		DVector3 spos = actor->spr.pos.plusZ(-((pz * vr_hunits_per_meter()) + actor->viewzoffset));
 		posXY = DVector2(px * vr_hunits_per_meter(), py * vr_hunits_per_meter()).Rotated(-DAngle90 + actor->spr.Angles.Yaw);
 		spos.X -= posXY.X;
 		spos.Y -= posXY.Y;
@@ -1549,8 +1549,7 @@ void ProcessInput(PLAYER* pPlayer)
 		//Update player angles and position for shooting
 		actor->spr.pos.X -= posXY.X;
 		actor->spr.pos.Y -= posXY.Y;
-		actor->spr.pos.Z -= (pz * vr_hunits_per_meter()) + actor->viewzoffset;
-		pPlayer->zWeapon = actor->spr.pos.Z;
+		pPlayer->zWeapon = actor->spr.pos.Z - ((pz * vr_hunits_per_meter()) + actor->viewzoffset);
 		actor->spr.Angles.Yaw += DAngle::fromDeg(yaw);
 		actor->spr.Angles.Pitch -= DAngle::fromDeg(pitch);
 		pPlayer->slope = actor->spr.Angles.Pitch.Tan();
@@ -1618,7 +1617,6 @@ void ProcessInput(PLAYER* pPlayer)
 	{
 		actor->spr.pos.X += posXY.X;
 		actor->spr.pos.Y += posXY.Y;
-		actor->spr.pos.Z += (pz * vr_hunits_per_meter()) + actor->viewzoffset;
 		actor->spr.Angles.Yaw -= DAngle::fromDeg(yaw);
 		actor->spr.Angles.Pitch += DAngle::fromDeg(pitch);
 		pPlayer->slope = actor->spr.Angles.Pitch.Tan();
