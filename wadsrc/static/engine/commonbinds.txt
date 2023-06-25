@@ -81,8 +81,6 @@ pad_a +open
 pad_y +jump
 rtrigger +attack
 ltrigger +altattack
-lshoulder weapprev
-rshoulder weapnext
 dpadleft invprev
 dpadright invnext
 dpaddown invuse

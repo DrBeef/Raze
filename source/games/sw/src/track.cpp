@@ -39,8 +39,6 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 #include "misc.h"
 #include "weapon.h"
 
-extern int resyncVRYawWithGame;
-
 BEGIN_SW_NS
 
 DVector2 DoTrack(SECTOR_OBJECT* sop, short locktics);
@@ -1519,12 +1517,6 @@ void MovePlayer(PLAYER* pp, SECTOR_OBJECT* sop, const DVector2& move)
 
         // Last known angle is now adjusted by the delta angle
         pp->RevolveAng = deltaangle(pp->RevolveDeltaAng, pp->actor->spr.Angles.Yaw);
-
-        //A VR thing..
-        if (pp->RevolveAng.Degrees() != 0.0)
-        {
-            resyncVRYawWithGame = 1;
-        }
     }
 
     // increment Players delta angle

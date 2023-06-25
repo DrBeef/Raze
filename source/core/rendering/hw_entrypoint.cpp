@@ -56,8 +56,7 @@
 
 EXTERN_CVAR(Bool, cl_capfps)
 
-extern int resyncVRYawWithGame;
-extern float gameYaw;
+extern float vrYaw;
 
 PalEntry GlobalMapFog;
 float GlobalFogDensity = 350.f;
@@ -236,17 +235,24 @@ FRenderViewpoint SetupViewpoint(DCoreActor* cam, const DVector3& position, int s
 
 		if (gamestate == GS_LEVEL)
 		{
-			gameYaw -= hmdYawDeltaDegrees;
-		}
+			// Special frame-yaw-resync code
+			// Basically, if the game code changes the player's yaw, then we need to gradually resync
+			// our "vrYaw" back to match it, doing the full amount on a frame causes it to glitch
+			// but smoothly transitioning to it means the user doesn't notice and we should never be out
+			// of sync with the game's yaw for very long
+			{
+				float diff = (float) (-90.f + angles.Yaw.Degrees()) - vrYaw;
+				if (diff < -360.f)
+					diff += 360.f;
+				if (diff > 360.f)
+					diff -= 360.f;
+				vrYaw += (diff / 2.0f);
+			}
 
-		if (gamestate == GS_LEVEL && resyncVRYawWithGame)
-		{
-			if (resyncVRYawWithGame > 0)
-				gameYaw = (float) (-90.f + angles.Yaw.Degrees());
-
-			resyncVRYawWithGame--;
+			//And now apply the delta of hmd movement for this frame
+			vrYaw -= hmdYawDeltaDegrees;
 		}
-	}
+    }
 
 	FRenderViewpoint r_viewpoint{};
 	r_viewpoint.CameraActor = cam;
@@ -259,7 +265,7 @@ FRenderViewpoint SetupViewpoint(DCoreActor* cam, const DVector3& position, int s
 	}
 	else
 	{
-		r_viewpoint.HWAngles.Yaw = FAngle::fromDeg(gameYaw);
+		r_viewpoint.HWAngles.Yaw = FAngle::fromDeg(vrYaw);
 	}
 	r_viewpoint.HWAngles.Pitch = FAngle::fromDeg(pitch);
 	r_viewpoint.HWAngles.Roll = FAngle::fromDeg(roll);

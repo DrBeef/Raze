@@ -108,7 +108,6 @@ void resetTurnHeldAmt()
 
 void VR_GetMove(float *joy_forward, float *joy_side, float *hmd_forward, float *hmd_side, float *up,
 				float *yaw, float *pitch, float *roll);
-extern int resyncVRYawWithGame;
 
 //---------------------------------------------------------------------------
 //
@@ -357,12 +356,6 @@ void PlayerAngles::doViewPitch(const bool canslopetilt, const bool climbing)
 
 void PlayerAngles::doViewYaw(InputPacket* const input)
 {
-	if (ViewAngles.Yaw.Degrees() != 0.0f ||
-			ViewAngles.Roll.Degrees() != 0.0f)
-	{
-		resyncVRYawWithGame = 1;
-	}
-
 	// Process angle return to zeros.
 	scaletozero(ViewAngles.Yaw, YAW_LOOKRETURN);
 	scaletozero(ViewAngles.Roll, YAW_LOOKRETURN);

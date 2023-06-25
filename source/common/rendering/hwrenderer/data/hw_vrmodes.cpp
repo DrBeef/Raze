@@ -47,6 +47,7 @@ extern vec3_t hmdPosition;
 extern vec3_t hmdOrigin;
 extern vec3_t hmdorientation;
 extern vec3_t weaponangles;
+extern vec3_t rawcontrollerangles; // angles unadjusted by weapon adjustment cvars
 
 float RazeXR_GetFOV();
 void VR_GetMove(float *joy_forward, float *joy_side, float *hmd_forward, float *hmd_side, float *up,
@@ -76,7 +77,7 @@ CVAR(Bool, vr_move_use_offhand, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, vr_teleport, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, vr_weaponScale, 1.02f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, vr_weaponPitchAdjust, 20.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Float, vr_weaponYawAdjust, 5.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Float, vr_weaponYawAdjust, 0.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, vr_snapTurn, 45.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, vr_move_speed, 19, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, vr_run_multiplier, 1.5, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -241,10 +242,10 @@ void VRMode::AdjustViewport(DFrameBuffer *screen) const
 	screen->mScreenViewport.left = (int)(screen->mScreenViewport.left * mHorizontalViewportScale);
 }
 
-extern float gameYaw;
+extern float vrYaw;
 float getViewpointYaw()
 {
-	return gameYaw;
+	return vrYaw;
 }
 
 VSMatrix VREyeInfo::GetHUDProjection(int width, int height) const
@@ -351,14 +352,14 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 			// Right-handed
 			new_projection.rotate(weaponangles[YAW] - hmdorientation[YAW], 0, 1, 0);
 			new_projection.rotate(weaponangles[PITCH], 1, 0, 0);
-			new_projection.rotate(weaponangles[ROLL], 0, 0, 1);
+			new_projection.rotate(rawcontrollerangles[ROLL], 0, 0, 1);
 		}
 		else
 		{
 			// Left-handed
 			new_projection.rotate(180.0f + weaponangles[YAW] - hmdorientation[YAW], 0, 1, 0);
 			new_projection.rotate(-weaponangles[PITCH], 1, 0, 0);
-			new_projection.rotate(-weaponangles[ROLL], 0, 0, 1);
+			new_projection.rotate(-rawcontrollerangles[ROLL], 0, 0, 1);
 		}
 
 		float weapon_scale = 0.6f;
