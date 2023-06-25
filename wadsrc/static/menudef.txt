@@ -557,10 +557,15 @@ OptionMenu "VROptionsMenu" protected
 	Slider "Height Adjust",	"vr_height_adjust", 0.0, 1.0, 0.1
 	StaticText 	""
 	Option "Positional Tracking",	"vr_positional_tracking", "YesNo"
+	Option "Allow Pitch Override*",	"vr_allowPitchOverride", "YesNo"
 	Option "6DoF Weapons",	"vr_6dof_weapons", "YesNo"
 	Slider "Weapon Pitch Adjust",	"vr_weaponPitchAdjust", 0.0, 90.0, 5
 	Slider "Weapon Yaw Adjust",	"vr_weaponYawAdjust", -10.0, 10.0, 1
 	Option "VR Crosshair",	"vr_6dof_crosshair", "YesNo"
+
+    StaticText ""
+    StaticText "*Allows the game to override the pitch the user is looking at"
+    StaticText "in some scenarios"
 
     StaticText ""
     StaticText "HUD"

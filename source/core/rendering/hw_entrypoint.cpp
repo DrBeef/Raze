@@ -55,8 +55,10 @@
 #include "gamehud.h"
 
 EXTERN_CVAR(Bool, cl_capfps)
+EXTERN_CVAR(Bool, vr_allowPitchOverride);
 
 extern float vrYaw;
+extern float vrPitch;
 
 PalEntry GlobalMapFog;
 float GlobalFogDensity = 350.f;
@@ -108,6 +110,7 @@ void CollectLights(FLevelLocals* Level)
 float RazeXR_GetFOV();
 void VR_GetMove(float *joy_forward, float *joy_side, float *hmd_forward, float *hmd_side, float *up,
 				float *yaw, float *pitch, float *roll);
+void RazeXR_setUseScreenLayer(bool use);
 
 //-----------------------------------------------------------------------------
 //
@@ -213,6 +216,15 @@ void RenderViewpoint(FRenderViewpoint& mainvp, IntRect* bounds, float fov, float
 // Set up the view point.
 //
 //===========================================================================
+void lerpValue(float gameVal, float &vrVal)
+{
+	float diff = gameVal - vrVal;
+	if (diff < -360.f)
+		diff += 360.f;
+	if (diff > 360.f)
+		diff -= 360.f;
+	vrVal += (diff / 2.0f);
+}
 
 FRenderViewpoint SetupViewpoint(DCoreActor* cam, const DVector3& position, int sectnum, const DRotator& angles, float fov = -1)
 {
@@ -220,10 +232,10 @@ FRenderViewpoint SetupViewpoint(DCoreActor* cam, const DVector3& position, int s
 	VR_GetMove(&dummy, &dummy, &dummy, &dummy, &dummy, &yaw, &pitch, &roll);
 
 	//Special handling for Duke's security cameras
-    bool renderingSecurityCamera = isDuke() && (cam && cam->spr.cstat & CSTAT_SPRITE_INVISIBLE);
+    bool renderingRemoteCamera = isDuke() && (cam && cam->spr.cstat & CSTAT_SPRITE_INVISIBLE);
 
 	//Only do the following if not rendering a camera tex
-	if (!renderingSecurityCamera)
+	if (!renderingRemoteCamera)
 	{
 		//Yaw
 		float hmdYawDeltaDegrees;
@@ -233,6 +245,14 @@ FRenderViewpoint SetupViewpoint(DCoreActor* cam, const DVector3& position, int s
 			previousHmdYaw = yaw;
 		}
 
+		//Pitch
+		float hmdPitchDeltaDegrees;
+		{
+			static float previousHmdPitch = pitch;
+			hmdPitchDeltaDegrees = pitch - previousHmdPitch;
+			previousHmdPitch = pitch;
+		}
+
 		if (gamestate == GS_LEVEL)
 		{
 			// Special frame-yaw-resync code
@@ -240,17 +260,22 @@ FRenderViewpoint SetupViewpoint(DCoreActor* cam, const DVector3& position, int s
 			// our "vrYaw" back to match it, doing the full amount on a frame causes it to glitch
 			// but smoothly transitioning to it means the user doesn't notice and we should never be out
 			// of sync with the game's yaw for very long
-			{
-				float diff = (float) (-90.f + angles.Yaw.Degrees()) - vrYaw;
-				if (diff < -360.f)
-					diff += 360.f;
-				if (diff > 360.f)
-					diff -= 360.f;
-				vrYaw += (diff / 2.0f);
-			}
+			lerpValue((float) (-90.f + angles.Yaw.Degrees()), vrYaw);
 
-			//And now apply the delta of hmd movement for this frame
+			// And now apply the delta of hmd movement for this frame
 			vrYaw -= hmdYawDeltaDegrees;
+
+			// And do the same for pitch so the game _can_ override the pitch if
+			// the user allows it
+			if (vr_allowPitchOverride)
+			{
+				lerpValue((float) (angles.Pitch.Degrees()), vrPitch);
+				vrPitch += hmdPitchDeltaDegrees;
+			}
+			else
+			{
+				vrPitch = pitch;
+			}
 		}
     }
 
@@ -259,16 +284,23 @@ FRenderViewpoint SetupViewpoint(DCoreActor* cam, const DVector3& position, int s
 	r_viewpoint.SectNums = nullptr;
 	r_viewpoint.SectCount = sectnum;
 	r_viewpoint.Pos = { position.X, -position.Y, -position.Z };
-	if (renderingSecurityCamera)
+	if (renderingRemoteCamera)
 	{
 		r_viewpoint.HWAngles.Yaw = FAngle::fromDeg(-90.f + (float)angles.Yaw.Degrees());
+		r_viewpoint.HWAngles.Pitch = FAngle::fromDeg((float)angles.Pitch.Degrees());
+		r_viewpoint.HWAngles.Roll = FAngle::fromDeg((float)angles.Roll.Degrees());
+
+		if (fov != -1)
+		{
+			RazeXR_setUseScreenLayer(true);
+		}
 	}
 	else
 	{
 		r_viewpoint.HWAngles.Yaw = FAngle::fromDeg(vrYaw);
+		r_viewpoint.HWAngles.Pitch = FAngle::fromDeg(vrPitch);
+		r_viewpoint.HWAngles.Roll = FAngle::fromDeg(roll);
 	}
-	r_viewpoint.HWAngles.Pitch = FAngle::fromDeg(pitch);
-	r_viewpoint.HWAngles.Roll = FAngle::fromDeg(roll);
 	r_viewpoint.FieldOfView = FAngle::fromDeg((float)RazeXR_GetFOV());
 	r_viewpoint.RotAngle = angles.Yaw.BAMs();
 	double FocalTangent = tan(r_viewpoint.FieldOfView.Radians() / 2);
