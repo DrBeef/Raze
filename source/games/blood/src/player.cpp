@@ -1594,7 +1594,7 @@ void ProcessInput(PLAYER* pPlayer)
 				if (crosshair)
 				{
 					crosshair->spr.picnum = kCrosshairTile;
-					crosshair->spr.scale = DVector2(0.4 + length / 512.0, 0.4 + length / 512.0);
+					crosshair->spr.scale = DVector2(0.55 + length / 512.0, 0.55 + length / 512.0);
 					crosshair->spr.shade = -40;
 				}
 			}

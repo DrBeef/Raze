@@ -74,11 +74,9 @@ CVAR(Float, vr_units_per_meter, 0.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // METER
 CVAR(Float, vr_height_adjust, 0.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // METERS
 CVAR(Int, vr_control_scheme, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 CVAR(Bool, vr_move_use_offhand, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Bool, vr_teleport, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Float, vr_weaponScale, 1.02f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, vr_weaponPitchAdjust, 20.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Float, vr_weaponYawAdjust, 0.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Bool, vr_allowPitchOverride, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Float, vr_weaponYawAdjust, 5.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Bool, vr_allowPitchOverride, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, vr_snapTurn, 45.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, vr_move_speed, 19, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, vr_run_multiplier, 1.5, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -346,6 +344,7 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 
 		float x, y, z, pitch, yaw;
 		get_weapon_pos_and_angle(x, y, z, pitch, yaw);
+		z -= vr_height_adjust; // We don't want to include the height adjust in this calculation
 		new_projection.translate(-x * weapon_stereo_effect, (z-hmdPosition[1]) * weapon_stereo_effect, -y * weapon_stereo_effect);
 
 		if (vr_control_scheme < 10)
@@ -353,14 +352,14 @@ VSMatrix VREyeInfo::GetPlayerSpriteProjection(int width, int height) const
 			// Right-handed
 			new_projection.rotate(weaponangles[YAW] - hmdorientation[YAW], 0, 1, 0);
 			new_projection.rotate(weaponangles[PITCH], 1, 0, 0);
-			new_projection.rotate(rawcontrollerangles[ROLL], 0, 0, 1);
+			new_projection.rotate(weaponangles[ROLL], 0, 0, 1);
 		}
 		else
 		{
 			// Left-handed
 			new_projection.rotate(180.0f + weaponangles[YAW] - hmdorientation[YAW], 0, 1, 0);
 			new_projection.rotate(-weaponangles[PITCH], 1, 0, 0);
-			new_projection.rotate(-rawcontrollerangles[ROLL], 0, 0, 1);
+			new_projection.rotate(-weaponangles[ROLL], 0, 0, 1);
 		}
 
 		float weapon_scale = 0.6f;
