@@ -176,10 +176,15 @@ void RenderViewpoint(FRenderViewpoint& mainvp, IntRect* bounds, float fov, float
 		// Stereo mode specific viewpoint adjustment
 		if (eye.mShiftFactor != 0)
 		{
-			vp.Pos += eye.GetViewShift(vp.HWAngles);
+			DVector3 newpos = vp.Pos;
+			newpos += eye.GetViewShift(vp.HWAngles);
 			sectortype* sect = &sector[vp.SectCount];
-			updatesector(DVector2(vp.Pos.X, -vp.Pos.Y), &sect);
-			vp.SectCount = sectindex(sect);
+			updatesector(DVector2(newpos.X, -newpos.Y), &sect);
+			if (sect != nullptr)
+			{
+				vp.Pos = newpos;
+				vp.SectCount = sectindex(sect);
+			}
 		}
 
 		di->SetupView(RenderState, vp.Pos.X, vp.Pos.Y, vp.Pos.Z, false, false);
