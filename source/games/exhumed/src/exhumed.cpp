@@ -53,7 +53,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "tilesetbuilder.h"
 #include "psky.h"
 
-extern int playerHeight; //Used to define player height for VR
+extern float playerHeight; //Used to define player height for VR
 
 
 BEGIN_PS_NS

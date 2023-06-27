@@ -86,7 +86,7 @@ Prepared for public release: 03/28/2005 - Charlie Wiederhold, 3D Realms
 #include "interpolate.h"
 
 //#include "crc32.h"
-extern int playerHeight; //Used to define player height for VR
+extern float playerHeight; //Used to define player height for VR
 
 CVAR(Bool, sw_ninjahack, false, CVAR_ARCHIVE /*| CVAR_SERVERINFO*/);
 CVAR(Bool, sw_darts, false, CVAR_ARCHIVE);

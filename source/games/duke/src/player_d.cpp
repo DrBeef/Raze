@@ -41,6 +41,8 @@ source as it is released.
 
 void get_weapon_pos_and_angle(float &x, float &y, float &z, float &pitch, float &yaw);
 float vr_hunits_per_meter();
+extern float playerHeight;
+extern float heightScaler;
 
 EXTERN_CVAR(Bool, vr_6dof_weapons);
 EXTERN_CVAR(Bool, vr_6dof_crosshair);
@@ -2731,6 +2733,15 @@ void processinput_d(int snum)
 
 	shrunk = (pact->spr.scale.Y < 0.5);
 	getzrange(p->GetActor()->getPosWithOffsetZ(), psectp, &ceilingz, chz, &floorz, clz, 10.1875, CLIPMASK0);
+
+	if (pact && pact->isPlayer() && shrunk)
+	{
+		heightScaler = (pact->spr.scale.Y / 0.5625) / 1.5f; // some arbitrary numbers yuck!
+	}
+	else
+	{
+		heightScaler = 1.0f;
+	}
 
 	setPlayerActorViewZOffset(pact);
 

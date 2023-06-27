@@ -50,7 +50,7 @@ Modifications for JonoF's port by Jonathon Fowler (jf@jonof.id.au)
 
 extern TArray<TPointer<MapRecord>> mapList;
 
-extern int playerHeight;
+extern float playerHeight;
 
 BEGIN_DUKE_NS
 

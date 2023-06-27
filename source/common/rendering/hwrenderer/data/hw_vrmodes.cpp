@@ -75,14 +75,14 @@ CVAR(Float, vr_height_adjust, 0.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG) // METERS
 CVAR(Int, vr_control_scheme, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG | CVAR_NOINITCALL)
 CVAR(Bool, vr_move_use_offhand, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, vr_weaponPitchAdjust, 20.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Float, vr_weaponYawAdjust, 5.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Float, vr_weaponYawAdjust, 6.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, vr_allowPitchOverride, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, vr_snapTurn, 45.0f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, vr_move_speed, 19, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, vr_run_multiplier, 1.5, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, vr_switch_sticks, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, vr_secondary_button_mappings, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Bool, vr_two_handed_weapons, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Bool, vr_two_handed_weapons, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, vr_positional_tracking, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, vr_crouch_use_button, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, vr_6dof_weapons, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -98,7 +98,8 @@ CVAR(Float, vr_hud_rotate, 0.f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, vr_hud_fixed_pitch, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, vr_hud_fixed_roll, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
-int playerHeight = 0;
+float playerHeight = 0;
+float heightScaler = 1.0f;
 
 extern int g_gameType;
 
@@ -168,7 +169,7 @@ float getHmdAdjustedHeightInMapUnit()
 	if (playerHeight != 0)
 	{
 		return ((hmdPosition[1] + vr_height_adjust) * vr_hunits_per_meter()) -
-			   playerHeight;
+				(playerHeight * (heightScaler != 1.0f ? (1.0f - heightScaler) : 1.0f));
 	}
 
 	//Just use offset from origin
@@ -404,7 +405,7 @@ bool VR_GetVRProjection(int eye, float zNear, float zFar, float* projection);
 VSMatrix VREyeInfo::GetStereoProjection(float fov, float aspectRatio, float fovRatio) const
 {
 	VSMatrix projection = GetCenterProjection(fov, aspectRatio, fovRatio);
-	projection.translate(getStereoSeparation(1.0f), 0, 0);
+	projection.translate(getStereoSeparation(1.0f) * heightScaler, 0, 0);
 	return projection;
 }
 
