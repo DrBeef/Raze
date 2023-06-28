@@ -2465,7 +2465,8 @@ sectdone:
 
         if (SyncInput())
         {
-            pPlayer->pActor->spr.Angles.Pitch += DAngle::fromDeg(PlayerList[nPlayer].input.horz);
+            //Set pitch directly
+            pPlayer->pActor->spr.Angles.Pitch = DAngle::fromDeg(PlayerList[nPlayer].input.horz);
         }
 
         pPlayer->Angles.doPitchKeys(&PlayerList[nLocalPlayer].input);

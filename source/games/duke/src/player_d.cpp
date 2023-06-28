@@ -3120,7 +3120,8 @@ HORIZONLY:
 	}
 	else if (SyncInput())
 	{
-		p->GetActor()->spr.Angles.Pitch += GetPlayerHorizon(snum);
+        //Set pitch directly
+        p->GetActor()->spr.Angles.Pitch = GetPlayerHorizon(snum);
 	}
 
 	p->Angles.doPitchKeys(&p->sync);
