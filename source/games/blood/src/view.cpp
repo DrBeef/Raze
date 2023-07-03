@@ -489,7 +489,9 @@ static void SetupView(PLAYER* pPlayer, DVector3& cPos, DRotator& cAngles, sector
 		{
 			cPos.Z += bobHeight;
 		}
-		cPos.Z -= 10. * (cAngles.Pitch / DAngle90);
+
+		//Don't do this in VR, feels weird
+//		cPos.Z -= 10. * (cAngles.Pitch / DAngle90);
 	}
 	else
 	{
